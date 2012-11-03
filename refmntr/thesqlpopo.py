@@ -79,14 +79,15 @@ def AddValidatedSession(UserName, UserLevel, LoginHash):
 # Logout Function
 # Removes the associated session ID / hash value from the relevant user privilege tuple
 # The hash is checked so that old session IDs cannot be used with valid users
-def LogoutHash(LogoutThisHashValue):
+def LogoutSession(LogoutThisHashValue):
 	ValidLogins = RequestValidLogins()
 	for NameLevelHashTime in ValidLogins:
 		if (NameLevelHashTime[2] == LogoutThisHashValue):
 			ValidLogins.remove(NameLevelHashTime)
 			print >> LoginLog, 'Timestamp:',datetime.now(),'\n',NameLevelHashTime[1], '(', NameLevelHashTime[0], ') logged out.\n'
 			UpdateValidLogins(ValidLogins)
-
+			return('User successfully logged out!', 1)
+			
 # Timeout Function
 # Disallows the processing of requests from session IDs/ login hashes if the
 # previous request was made more than 15 minutes prior.
@@ -101,7 +102,7 @@ def CheckForTimeout(LoginHash):
 			 CurrentTime = datetime.now()
 			 TimeDifference = CurrentTime - TimeOfLastRequest 
 			 if (TimeDifference > TimeoutValue):
-				LogoutHash(LoginHash)
+				LogoutSession(LoginHash)
 		
 '''
 ~~~~~~******REQUEST VALIDATION******~~~~~~
@@ -109,22 +110,22 @@ This portion of the code will validate each request made to the SQL database, en
 '''
 			
 def AuthenticateUser(UserName, Password):
-	return('0x12345')
+	return('0x12345', 1)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
-	return('PatientFirstName', 'PatientLastName', 'PatientBloodType', 'PatientAllergies', 'PatientICELastName', 'PatientICEFirstName', 'PatientICEPhone', 'PatientPCPLastName', 'PatientPCPFirstName', 'PatientPCPPhone', 'PatientNotes')
+	return('PatientFirstName', 'PatientLastName', 'PatientBloodType', 'PatientAllergies', 'PatientICELastName', 'PatientICEFirstName', 'PatientICEPhone', 'PatientPCPLastName', 'PatientPCPFirstName', 'PatientPCPPhone', 'PatientNotes', 1)
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
-	return('New Patient has been successfully added!')
+	return('New Patient has been successfully added!', 1)
 
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
-	return('Patient has been successfully removed!')
+	return('Patient has been successfully removed!', 1)
 
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
-	return('Patient name has been successfully modified!')	
+	return('Patient name has been successfully modified!', 1)	
 
 def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
-	return('Patient information has been successfully appended!')
+	return('Patient information has been successfully appended!', 1)
 
 def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
-	return('Patient information has been successfully modified!')
+	return('Patient information has been successfully modified!', 1)
