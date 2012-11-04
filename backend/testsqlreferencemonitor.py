@@ -1,6 +1,6 @@
 # Test Code for SQL POPO
 
-from thesqlpopo import *
+from sqlreferencemonitor import *
 
 AddValidatedSession('Lando','EMT',12345)
 AddValidatedSession('Lando','EMT',12395)
