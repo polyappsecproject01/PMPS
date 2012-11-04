@@ -5,8 +5,7 @@ import time
 import zmq
 
 def LoginUser(request):
-    login_hash = refmon.AuthenticateUser(request)
-    authenticated = login_hash != 0
+    login_hash, authenticated = refmon.AuthenticateUser(request["username"],request["password"])
     return {"authenticated":authenticated,"login_hash":login_hash}
 
 def GetProfile(request):
@@ -32,7 +31,7 @@ while True:
 
     # Debug (remove later)
     print
-    print json.dumps(msg, indent=4)
+    print json.dumps(req, indent=4)
     print
 
     method = req["method"]
