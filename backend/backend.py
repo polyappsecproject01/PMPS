@@ -1,6 +1,6 @@
 import json
 import os
-from refmntr import thesqlpopo
+import sqlreferencemonitor
 import time
 import zmq
 
