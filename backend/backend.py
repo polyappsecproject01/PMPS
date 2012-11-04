@@ -5,19 +5,19 @@ import time
 import zmq
 
 def LoginUser(request):
-    login_hash = thesqlpopo.AuthenticateUser(request)
+    login_hash = sqlreferencemonitor.AuthenticateUser(request)
     authenticated = login_hash != 0
     return {"authenticated":authenticated,"login_hash":login_hash}
 
 def GetProfile(request):
-    return thesqlpopo.RetrievePatientInfo(login_hash,request)
+    return sqlreferencemonitor.RetrievePatientInfo(login_hash,request)
 
 def UpdateProfile(login_hash,request):
-    updated = thesqlpopo.ModifyPatientInfo(login_hash,request) or thesqlpopo.AppendPatientInfo(login_hash.request)
+    updated = sqlreferencemonitor.ModifyPatientInfo(login_hash,request) or sqlreferencemonitor.AppendPatientInfo(login_hash.request)
     return {"updated":updated}
 
 def LogoutUser(login_hash):
-    logged_out = thesqlpopo.LogoutSession(login_hash)
+    logged_out = sqlreferencemonitor.LogoutSession(login_hash)
     return {"logged_out":logged_out}
     
 # Main
