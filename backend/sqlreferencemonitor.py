@@ -15,6 +15,7 @@ id after logout or timeout.
 
 # Module Imports
 from datetime import datetime, timedelta
+import MySQLdb
 
 # Initialize Logs
 ErrorLog = open("errorlog.log", 'a')
