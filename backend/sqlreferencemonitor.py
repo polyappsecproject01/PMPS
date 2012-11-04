@@ -14,8 +14,13 @@ id after logout or timeout.
 '''
 
 # Module Imports
+from dbinfo import *
 from datetime import datetime, timedelta
 import MySQLdb
+
+# Initialize Database Connection
+dbinfodata = getdbinfo() # Retrive db info from local file
+PMPSDatabase = MySQLdb.connect(user=dbinfodata[0], passwd=dbinfodata[1], db=dbinfodata[2])
 
 # Initialize Logs
 ErrorLog = open("errorlog.log", 'a')
@@ -111,9 +116,16 @@ This portion of the code will validate each request made to the SQL database, en
 '''
 			
 def AuthenticateUser(UserName, Password):
+
 	return('0x12345', 1)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
+
+	# Connect to SQL DB and retrieve information
+	DBPosition = PMPSDatabase.cursor() 
+	DBPosition.execute("""SELECT * FROM medical_profiles WHERE firstname = "John" """)
+	print DBPosition.fetchone()
+
 	return('PatientFirstName', 'PatientLastName', 'PatientBloodType', 'PatientAllergies', 'PatientICELastName', 'PatientICEFirstName', 'PatientICEPhone', 'PatientPCPLastName', 'PatientPCPFirstName', 'PatientPCPPhone', 'PatientNotes', 1)
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
