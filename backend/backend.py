@@ -1,23 +1,23 @@
 import json
 import os
-import sqlreferencemonitor
+import sqlreferencemonitor as refmon
 import time
 import zmq
 
 def LoginUser(request):
-    login_hash = sqlreferencemonitor.AuthenticateUser(request)
+    login_hash = refmon.AuthenticateUser(request)
     authenticated = login_hash != 0
     return {"authenticated":authenticated,"login_hash":login_hash}
 
 def GetProfile(request):
-    return sqlreferencemonitor.RetrievePatientInfo(login_hash,request)
+    return refmon.RetrievePatientInfo(login_hash,request)
 
 def UpdateProfile(login_hash,request):
-    updated = sqlreferencemonitor.ModifyPatientInfo(login_hash,request) or sqlreferencemonitor.AppendPatientInfo(login_hash.request)
+    updated = refmon.ModifyPatientInfo(login_hash,request) or refmon.AppendPatientInfo(login_hash.request)
     return {"updated":updated}
 
 def LogoutUser(login_hash):
-    logged_out = sqlreferencemonitor.LogoutSession(login_hash)
+    logged_out = refmon.LogoutSession(login_hash)
     return {"logged_out":logged_out}
     
 # Main
