@@ -1,0 +1,120 @@
+body {
+	/* to allow cross-browser support*/
+	/*background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), to(#e2e2e2));
+	background-repeat:no-repeat;*/
+	background-color:#e2e2e2;
+	font-size: 16px;
+	margin:0 auto;
+}
+
+h3 {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:16px;
+	color:#009;
+	display:inline;
+	font-weight:normal;
+}
+
+h4 {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:14px;
+	color:#3366CC;
+	display:inline;
+	font-weight:normal;
+}
+
+h5 {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:12px;
+	color:#3366CC;
+	display:inline;
+	font-weight:normal;
+}
+p, span, div, li, a, input, button {
+	font-family: Tahoma, serif;
+}
+
+.placeholder { color: #aaa; }
+
+#container {
+	width:1200px;
+	margin: auto;
+	background-image:url('back2.png');
+}
+
+#userView {
+	margin: auto;
+	text-align: left;
+	margin-left:2em;
+}
+#main {
+	margin: auto;
+	text-align: center;
+	max-width: 500px;
+}
+
+.tab {
+	width:300px;
+	font-size:13px;
+	color:#3366CC;
+}
+
+.inp {
+	padding: 10px;
+	font-size: 1.6em;
+	margin: 10px auto;
+	width: 80%;
+	font-family: 'Raleway', sans-serif;
+}
+
+#login {
+	background: #e3e3e3;
+	border: 1px solid #bbb;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-o-border-radius: 3px;
+	border-radius: 3px;
+	-webkit-box-shadow: inset 0 0 1px 1px #f6f6f6;
+	-moz-box-shadow: inset 0 0 1px 1px #f6f6f6;
+	-ms-box-shadow: inset 0 0 1px 1px #f6f6f6;
+	-o-box-shadow: inset 0 0 1px 1px #f6f6f6;
+	box-shadow: inset 0 0 1px 1px #f6f6f6;
+	color: #333;
+	line-height: 1;
+	font-size: 1.6em;
+	padding: 8px 0 9px;
+	text-align: center;
+	text-shadow: 0 1px 0 #fff;
+	display: block;
+	margin: 10px auto;
+	width: 60%;
+	font-family: Verdana, sans-serif;
+}
+
+#login:hover {
+	background: #d9d9d9;
+	-webkit-box-shadow: inset 0 0 1px 1px #eaeaea;
+	-moz-box-shadow: inset 0 0 1px 1px #eaeaea;
+	-ms-box-shadow: inset 0 0 1px 1px #eaeaea;
+	-o-box-shadow: inset 0 0 1px 1px #eaeaea;
+	box-shadow: inset 0 0 1px 1px #eaeaea;
+	color: #222;
+	cursor: pointer; 
+}
+
+header {
+	text-align:center;
+}
+
+footer {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:9px;
+	text-transform:uppercase;
+	text-align: center;
+	margin: 50px auto;
+}
+
+footer p, footer a {
+	color: #f7f7f7;
+}
