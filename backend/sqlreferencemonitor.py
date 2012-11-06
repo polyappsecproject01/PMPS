@@ -34,7 +34,7 @@ LoginLog = open("loginlog.log", 'a')
 global TimeOutValue
 TimeOutValue = datetime.timedelta(minutes=15) # Login timeout value
 global ValidUserLevels
-ValidUserLevels = ['readonly', 'readwrite', 'Admin'] # Define the Valid User Levels
+ValidUserLevels = ['readonly', 'readwrite', 'admin'] # Define the Valid User Levels
 global LoggedOutHash 
 LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
 
@@ -138,6 +138,7 @@ def AuthenticateUser(UserName, Password, IP_Address): # JV
                 return("",0)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# All valid user levels may use this function	
 	PermissionsOKList = ValidUserLevels 
@@ -155,6 +156,8 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
 			QueryResult = DBPosition.fetchone()
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -166,54 +169,145 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 	
-	# Connect to the SQL DB and Add New Patient
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
-	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient','\n'
-	# Store the result as a dict for return
-	ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with write permissions can access this (Doctors and Admins)	
+	PermissionsOKList = ValidUserLevels[1:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to the SQL DB and Add New Patient
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
+			# Store the result as a dict for return
+			ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to add new patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 	
-	# Connect to the SQL DB and Remove Patient
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient','\n'
-	# Store the result as a dict for return
-	ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to the SQL DB and Remove Patient
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient by',UserHashLevel[0],'\n'
+			# Store the result as a dict for return
+			ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to remove patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
 	
-	# Connect to the SQL DB and Modify Patient Name
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
-	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName','\n'
-	# Store the result as a dict for return
-	ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to the SQL DB and Modify Patient Name
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName','\n'
+			# Store the result as a dict for return
+			ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to modify patient name!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
 	
-	# Connect to the SQL DB and Modify Patient Name
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo','\n'
-	# Store the result as a dict for return
-	ReturnDict = dict(StatusMessage = 'Patient information has been successfully appended!', SuccessfulQuery = 1)
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to the SQL DB and Modify Patient Name
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo','\n'
+			# Store the result as a dict for return
+			ReturnDict = dict(StatusMessage = 'Patient information has been successfully appended!', SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to append patient information!', SuccessfulQuery = 0)
+
 	return(ReturnDict)
 
 def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
-	# Connect to the SQL DB and Modify Patient Name
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo','\n'
-	# Store the result as a dict for return
-	ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to the SQL DB and Modify Patient Name
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
+			# Keep track of query in the debug log
+			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo','\n'
+			# Store the result as a dict for return
+			ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to modify patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
