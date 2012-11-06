@@ -10,7 +10,7 @@ from sqlreferencemonitor import *
 #AddValidatedSession('Jeremy','Admin',12345678) #This will be called by AuthenticateUser, never directly except for testing
 #AddValidatedSession('Mike','Admin',12345678)
 #LogoutSession(123456)
-RequestValidLogins()
+#RequestValidLogins()
 #print AuthenticateUser('Lando', 'passwordlol')
 #print RetrievePatientInfo('Doe', 'John', 12345678)
 #print AddNewPatient('Lando', 'Calrissian', '0x12345')
@@ -22,4 +22,6 @@ RequestValidLogins()
 #print RemovePatient('C','Anthony', 12345)
 #print ModifyPatientName('C', 'Anthony', 'Ryan', 'Nolan', 12345)
 #CheckForTimeoutAll()
-#UpdateTimestamp ('1000000000000000000000000000000000000000000000000000000000000000')
+UpdateTimestamp ('emt', '1000000000000000000000000000000000000000000000000000000000000000')
+GoodTestHash = '1' + '0'*63
+RetrievePatientInfo('Doe', 'John', GoodTestHash)

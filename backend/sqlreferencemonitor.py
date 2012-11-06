@@ -18,7 +18,7 @@ as 15 minutes without user activity.
 # Module Imports
 from dbinfo import *
 import datetime
-import hash_utilities # JD
+import hash_utilities # JV
 import MySQLdb
 
 # Initialize Database Connection
@@ -46,19 +46,19 @@ LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
 # For EVERY database request made by a user, this function must be called.
 
 # Check the time of the last request for a specific user and logout if > 15 min.
-def CheckForTimeoutUser(UserName)
+def CheckForTimeoutUser(UserName):
 	# Retrieve a tuple consisting of the user if logged in (non-zero hashes) and their last access time (time of last request)
 	DBPosition = PMPSDatabase.cursor()
 	DBPosition.execute("""SELECT username, login_hash, last_access FROM users WHERE username = %s AND login_hash <> %s""", (UserName,LoggedOutHash))
 	UserHashLastAccessTuple = DBPosition.fetchone()
 	# Parse the time of last request and compare it with the current time
 	TimeOfLastRequest = datetime.datetime.strptime(UserHashTimeAccessTuple[2], '%Y-%m-%d %H:%M:%S')
-		print TimeOfLastRequest # Trace Entry
-		CurrentTime = datetime.datetime.now()
-		TimeDifference = CurrentTime - TimeOfLastRequest
+	print TimeOfLastRequest # Trace Entry
+	CurrentTime = datetime.datetime.now()
+	TimeDifference = CurrentTime - TimeOfLastRequest
 	# If the time difference is greater than 15 call the logout function for this user	
-		if (TimeDifference > TimeOutValue):
-			LogoutSession(UserHashLastAccessTuple[1])
+	if (TimeDifference > TimeOutValue):
+		LogoutSession(UserHashLastAccessTuple[1])
 	print UserHashLastAccessTuple # Trace Entry
 
 # Check the time of last requests for all users and logout if > 15 min.
@@ -83,52 +83,18 @@ def RequestValidLogins():
 	# Check to ensure that the corresponding sessions are not timed out
 	# If it is, the function will set the hash to zero (log the user out)
 	CheckForTimeoutAll()
-	# Query the database and form a list of all logins with active sessions
+	# Query the database and form a list of all logins with remaining active sessions
 	DBPosition = PMPSDatabase.cursor()
-	DBPosition.execute("""SELECT * FROM users WHERE login_hash <> %s""", (LoggedOutHash))
-	AllActiveLogins = DBPosition.fetchall()
-	print "Valid Login List:", AllActiveLogins # Trace Entry
+	DBPosition.execute("""SELECT username, login_hash, accesslevel FROM users WHERE login_hash <> %s""", (LoggedOutHash))
+	ValidLogins = DBPosition.fetchall()
+	print "Valid Login List:", ValidLogins # Trace Entry
 	return (ValidLogins)
 
-# Update the timestamp (last_access) for a given login hash (session ID)
-def UpdateTimestamp (LoginHash):
+# Update the timestamp (last_access) for a given user and login hash (session ID)
+def UpdateTimestamp (UserName, LoginHash):
 	NewTimestamp = datetime.datetime.now()
 	DBPosition = PMPSDatabase.cursor()
-	DBPosition.execute("""UPDATE users SET last_access = %s WHERE login_hash = %s""", (NewTimestamp, LoginHash))
-		
-# Add Newly Validated Session IDs (Login Hashes)
-def AddValidatedSession(UserName, UserLevel, LoginHash):
-	# Check for both a valid user level and ensure no duplicate hashes
-	# The Session ID/Login Hash is stored along with a login time for timeout use later on (if no request is made for 15 minutes straight, the sessionID will be removed and the user is effectively logged out, since the reference monitor will deny all requests from the corresponding Login Hash)
-	
-	# Temporary Variable Re-Initialization
-	AlreadyLoggedIn = 0 # Assume the user is not logged in. 
-	
-	# Request current list of valid logins
-	ValidLogins = RequestValidLogins()
-	
-	# Check if the user level passed to the function is valid.
-	# Check if the user is already logged in to any of these levels (this 
-	# is to prevent the case where authorized logins can flood the system
-	# with repeated logins).
-	# Trust that the user has been authenticated to the proper level 
-	# before this function was called.
-	# Additionally, no two identical hashes are allowed
-	
-	if (UserLevel in ValidUserLevels):
-		for NameLevelHashTime in ValidLogins: # Check for already logged in user
-			if (NameLevelHashTime[0] == UserName):
-				AlreadyLoggedIn = 1
-				print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
-			if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
-				AlreadyLoggedIn = 1
-				print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session ID Requested for User (',UserName,').\n'
-		if (AlreadyLoggedIn==0): 
-			print >> LoginLog, 'Timestamp:',datetime.datetime.now(),'\n',UserLevel, '(', UserName, ') successfully logged in.\n'
-			ValidLogins+=[[UserName, UserLevel, LoginHash, datetime.datetime.now()]]
-			UpdateValidLogins(ValidLogins)
-	else:
-		print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','An Invalid User Level (',UserLevel,') was passed to the reference monitor for user',UserName,'.\n'
+	DBPosition.execute("""UPDATE users SET last_access = %s WHERE username = %s AND login_hash = %s""", (NewTimestamp, UserName, LoginHash))
 		
 # Logout Function
 # Removes the associated session ID / hash value from the relevant user privilege tuple
@@ -146,7 +112,7 @@ def LogoutSession(LogoutThisHashValue):
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
 
-def AuthenticateUser(UserName, Password, IP_Address):
+def AuthenticateUser(UserName, Password, IP_Address): # JV
         #missing: Validate UserName.
 
         # Connect to SQL DB and Retrieve Information
@@ -175,18 +141,19 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 	# Ensure the LoginHash is valid and has the proper permissions associated 
         # with it (all authenticated users may use this function)
         
-	#DBPosition = PMPSDatabase.cursor()
-        #DBPosition.execute("""SELECT * FROM users WHERE login_hash = %s""", (LoginHash))
-        #QueryResult = DBPosition.fetchone()
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	print ValidLogins # Trace Entry
 	
-#	if (UserLevel in ValidUserLevels):
- #               for NameLevelHashTime in ValidLogins: # Check for already logged in user
-  #                      if (NameLevelHashTime[0] == UserName):
-   #                             AlreadyLoggedIn = 1
-    #                            print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
-     #                   if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
-      #                          AlreadyLoggedIn = 1
-       #                         print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session
+	#for UserHashLevel in ValidLogins:
+	#	if (ValidLogins[1] == LoginHash):
+		#	if  # continue working here
+
+
+               #                  print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
+                #         if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
+                 #               AlreadyLoggedIn = 1
+                  #              print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session
 
 	# Connect to SQL DB and Retrieve Information
 	DBPosition = PMPSDatabase.cursor() 
