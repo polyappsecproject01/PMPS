@@ -16,6 +16,7 @@ id after logout or timeout.
 # Module Imports
 from dbinfo import *
 import datetime
+import hash_utilities
 import MySQLdb
 
 # Initialize Database Connection
@@ -130,10 +131,31 @@ def LogoutSession(LogoutThisHashValue):
 ~~~~~~******REQUEST VALIDATION******~~~~~~
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
-			
-def AuthenticateUser(UserName, Password):
 
-	return('0x12345', 1)
+def AuthenticateUser(UserName, Password, IP_Address):
+        #missing: Validate UserName.
+
+        # Connect to SQL DB and Retrieve Information
+        DBPosition = PMPSDatabase.cursor()
+        DBPosition.execute("""SELECT password_salt, password_hash FROM users WHERE username = %s""", (UserName,))
+
+        row = DBPosition.fetchone()
+        if row == None:
+                return ("",0)
+
+        salt, expected_hash = row
+
+        this_hash = hash_utilities.CalcHash(salt, Password)
+
+        if this_hash == expected_hash:
+                login_hash = hash_utilities.GenRandomHash()
+
+                DBPosition.execute("""UPDATE users SET login_hash = %s, ip_address = %s WHERE username = %s""",
+                                   (login_hash, IP_Address, UserName))
+
+                return (login_hash,1)
+        else:
+                return("",0)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 	# Ensure the LoginHash is valid and has the proper permissions associated 

@@ -3,6 +3,15 @@
 import json
 import zmq
 
+def Test(request):
+    out_stream = json.JSONEncoder().encode(request)
+    socket.send (out_stream)
+
+    in_stream = socket.recv()
+    rep = json.loads(in_stream)
+    print json.dumps(rep, indent=4)
+
+# Main
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
 
@@ -10,31 +19,47 @@ print "Connecting to backend server (subscriber)..."
 socket.connect ("tcp://localhost:1390")
 
 ################################################################################
-# Test invalid username/password.
-out_stream = json.JSONEncoder().encode ( {
-                 "method":"login",
-                 "request": {
-                     "username":"admin",
-                     "password":"frootloops",
-                     "ip_address":"192.168.007.010" } } )
-
-socket.send (out_stream)
-
-in_stream = socket.recv()
-rep = json.loads(in_stream)
-print json.dumps(rep, indent=4)
+# Test login with invalid username/password.
+Test( {
+        "method":"login",
+        "request": {
+            "username":"admin",
+            "password":"frootloops",
+            "ip_address":"192.168.007.010" } } )
 
 ################################################################################
-# Test valid username/password.
-out_stream = json.JSONEncoder().encode ( {
-                 "method":"login",
-                 "request": {
-                     "username":"emt",
-                     "password":"password",
-                     "ip_address":"192.168.007.010" } } )
+# Test login with valid username/password.
+Test( {
+        "method":"login",
+        "request": {
+            "username":"emt",
+            "password":"password",
+            "ip_address":"192.168.007.010" } } )
 
-socket.send (out_stream)
+################################################################################
+# Test getprofile for unknown patient.
+login_hash = raw_input("Enter login_hash above to test getprofile: ")
+Test( {
+	"method":"getprofile",
+	"auth_data":{
+            "username":"emt",
+            "ip_address":"192.168.007.010",
+            "login_hash":login_hash
+	},
+        "request":{
+            "firstname":"Mister",
+            "lastname":"Unknown" } } )
 
-in_stream = socket.recv()
-rep = json.loads(in_stream)
-print json.dumps(rep, indent=4)
+################################################################################
+# Test getprofile for valid patient.
+login_hash = raw_input("Enter login_hash above to test getprofile: ")
+Test( {
+	"method":"getprofile",
+	"auth_data":{
+            "username":"emt",
+            "ip_address":"192.168.007.010",
+            "login_hash":login_hash
+	},
+        "request":{
+            "firstname":"Nolan",
+            "lastname":"Ryan" } } )
