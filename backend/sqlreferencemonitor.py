@@ -4,19 +4,21 @@
 # All requests are parsed and validated by individual character.
 # All requests utilize the session ID to verify privledge level of the request being made.
 # The code for this portion of the assignment was written by Anthony C. (acanda01) (10/2012).
+# Some portions of this module were written by Jeffrey Valino and will be commented with "JV"
 # This code was tested successfully on Python 2.6.6, on the provided Linux VM at pmps.poly.edu.
 
 '''
 ~~~~~~******SESSION VALIDATION******~~~~~~
-This portion of the code will store each session id in an array that 
-dictates the user level (emt, doctor, admin).  It must remove the session 
-id after logout or timeout.
+This portion of the code will validate each session user level as properly logged in.  It will set the login hash (session 
+id) to a 64 bit hex number = 0 and represented as string ('0'*64) after logout or timeout.  A timeout is currently defined
+as 15 minutes without user activity.
+
 '''
 
 # Module Imports
 from dbinfo import *
 import datetime
-import hash_utilities
+import hash_utilities # JD
 import MySQLdb
 
 # Initialize Database Connection
@@ -28,11 +30,7 @@ ErrorLog = open("errorlog.log", 'a')
 DebugLog = open("debuglog.log", 'a')
 LoginLog = open("loginlog.log", 'a')
 
-# Initialize Session ID Arrays (Login Hashes) on Startup
-global ValidLogins
-ValidLogins = [[' ', ' ', ' ', ' ']] # Consists of Username, User Level, Login Hash and Last Access Timestamp
-
-# Definitions and Constants
+# Global Constants
 global TimeOutValue
 TimeOutValue = datetime.timedelta(minutes=15) # Login timeout value
 global ValidUserLevels
@@ -40,27 +38,43 @@ ValidUserLevels = ['EMT', 'Doctor', 'Admin'] # Define the Valid User Levels
 global LoggedOutHash 
 LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
 
-
-# Temporary Variable Initialization
-AlreadyLoggedIn = 1 # Used in AddValidatedSession
-
-# Timeout Function
+# Timeout Functions
 # Disallows the processing of requests from session IDs/ login hashes if the
 # previous request was made more than 15 minutes prior.
 # If the request is made within 15 minutes of the previous one, then the 
 # session ID / login hash timestamp is refreshed.
 # For EVERY database request made by a user, this function must be called.
+
+# Check the time of the last request for a specific user and logout if > 15 min.
+def CheckForTimeoutUser(UserName)
+	# Retrieve a tuple consisting of the user if logged in (non-zero hashes) and their last access time (time of last request)
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""SELECT username, login_hash, last_access FROM users WHERE username = %s AND login_hash <> %s""", (UserName,LoggedOutHash))
+	UserHashLastAccessTuple = DBPosition.fetchone()
+	# Parse the time of last request and compare it with the current time
+	TimeOfLastRequest = datetime.datetime.strptime(UserHashTimeAccessTuple[2], '%Y-%m-%d %H:%M:%S')
+		print TimeOfLastRequest # Trace Entry
+		CurrentTime = datetime.datetime.now()
+		TimeDifference = CurrentTime - TimeOfLastRequest
+	# If the time difference is greater than 15 call the logout function for this user	
+		if (TimeDifference > TimeOutValue):
+			LogoutSession(UserHashLastAccessTuple[1])
+	print UserHashLastAccessTuple # Trace Entry
+
+# Check the time of last requests for all users and logout if > 15 min.
 def CheckForTimeoutAll():
 	# Retrieve a tuple consisting of all logged in users (non-zero hashes) and their last access time (time of last request)
 	DBPosition = PMPSDatabase.cursor()
 	DBPosition.execute("""SELECT username, login_hash, last_access FROM users WHERE login_hash <> %s""", (LoggedOutHash))
 	UserHashLastAccessTuple = DBPosition.fetchall()	
-	print UserHashLastAccessTuple
+	print UserHashLastAccessTuple # Trace Entry
+	# Check each user entry for timeout
 	for UserHashTime in UserHashLastAccessTuple:
 		TimeOfLastRequest = datetime.datetime.strptime(UserHashTime[2], '%Y-%m-%d %H:%M:%S')
 		print TimeOfLastRequest
 		CurrentTime = datetime.datetime.now()
 		TimeDifference = CurrentTime - TimeOfLastRequest
+		# If the time difference is greater than 15 call the logout function for this user
 		if (TimeDifference > TimeOutValue):
 			LogoutSession(UserHashTime[1])
 
@@ -73,7 +87,7 @@ def RequestValidLogins():
 	DBPosition = PMPSDatabase.cursor()
 	DBPosition.execute("""SELECT * FROM users WHERE login_hash <> %s""", (LoggedOutHash))
 	AllActiveLogins = DBPosition.fetchall()
-	print "Valid Login List:", AllActiveLogins # Trace
+	print "Valid Login List:", AllActiveLogins # Trace Entry
 	return (ValidLogins)
 
 # Update the timestamp (last_access) for a given login hash (session ID)
