@@ -15,8 +15,7 @@ id after logout or timeout.
 
 # Module Imports
 from dbinfo import *
-from datetime import datetime, timedelta
-import hash_utilities
+import datetime
 import MySQLdb
 
 # Initialize Database Connection
@@ -30,25 +29,58 @@ LoginLog = open("loginlog.log", 'a')
 
 # Initialize Session ID Arrays (Login Hashes) on Startup
 global ValidLogins
-ValidLogins = [[' ',' ',' ',' ']]
+ValidLogins = [[' ', ' ', ' ', ' ']] # Consists of Username, User Level, Login Hash and Last Access Timestamp
 
 # Definitions and Constants
-TimeOutValue = timedelta(minutes=15) # Login timeout value
+global TimeOutValue
+TimeOutValue = datetime.timedelta(minutes=15) # Login timeout value
+global ValidUserLevels
 ValidUserLevels = ['EMT', 'Doctor', 'Admin'] # Define the Valid User Levels
+global LoggedOutHash 
+LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
+
 
 # Temporary Variable Initialization
 AlreadyLoggedIn = 1 # Used in AddValidatedSession
-TimeSinceLastRequest = TimeOutValue # Used in Timeout Function
+
+# Timeout Function
+# Disallows the processing of requests from session IDs/ login hashes if the
+# previous request was made more than 15 minutes prior.
+# If the request is made within 15 minutes of the previous one, then the 
+# session ID / login hash timestamp is refreshed.
+# For EVERY database request made by a user, this function must be called.
+def CheckForTimeoutAll():
+	# Retrieve a tuple consisting of all logged in users (non-zero hashes) and their last access time (time of last request)
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""SELECT username, login_hash, last_access FROM users WHERE login_hash <> %s""", (LoggedOutHash))
+	UserHashLastAccessTuple = DBPosition.fetchall()	
+	print UserHashLastAccessTuple
+	for UserHashTime in UserHashLastAccessTuple:
+		TimeOfLastRequest = datetime.datetime.strptime(UserHashTime[2], '%Y-%m-%d %H:%M:%S')
+		print TimeOfLastRequest
+		CurrentTime = datetime.datetime.now()
+		TimeDifference = CurrentTime - TimeOfLastRequest
+		if (TimeDifference > TimeOutValue):
+			LogoutSession(UserHashTime[1])
 
 # Request a list of currently valid logins
 def RequestValidLogins():
-	print "Valid Login List:", ValidLogins # Trace
+	# Check to ensure that the corresponding sessions are not timed out
+	# If it is, the function will set the hash to zero (log the user out)
+	CheckForTimeoutAll()
+	# Query the database and form a list of all logins with active sessions
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""SELECT * FROM users WHERE login_hash <> %s""", (LoggedOutHash))
+	AllActiveLogins = DBPosition.fetchall()
+	print "Valid Login List:", AllActiveLogins # Trace
 	return (ValidLogins)
-	
-# Updates the list of currently valid logins
-def UpdateValidLogins(newValidLoginList):	
-	ValidLogins = newValidLoginList
-	
+
+# Update the timestamp (last_access) for a given login hash (session ID)
+def UpdateTimestamp (LoginHash):
+	NewTimestamp = datetime.datetime.now()
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""UPDATE users SET last_access = %s WHERE login_hash = %s""", (NewTimestamp, LoginHash))
+		
 # Add Newly Validated Session IDs (Login Hashes)
 def AddValidatedSession(UserName, UserLevel, LoginHash):
 	# Check for both a valid user level and ensure no duplicate hashes
@@ -72,76 +104,53 @@ def AddValidatedSession(UserName, UserLevel, LoginHash):
 		for NameLevelHashTime in ValidLogins: # Check for already logged in user
 			if (NameLevelHashTime[0] == UserName):
 				AlreadyLoggedIn = 1
-				print >> ErrorLog, 'Timestamp:',datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
+				print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
 			if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
 				AlreadyLoggedIn = 1
-				print >> ErrorLog, 'Timestamp:',datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session ID Requested for User (',UserName,').\n'
+				print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session ID Requested for User (',UserName,').\n'
 		if (AlreadyLoggedIn==0): 
-			print >> LoginLog, 'Timestamp:',datetime.now(),'\n',UserLevel, '(', UserName, ') successfully logged in.\n'
-			ValidLogins+=[[UserName, UserLevel, LoginHash, datetime.now()]]
+			print >> LoginLog, 'Timestamp:',datetime.datetime.now(),'\n',UserLevel, '(', UserName, ') successfully logged in.\n'
+			ValidLogins+=[[UserName, UserLevel, LoginHash, datetime.datetime.now()]]
 			UpdateValidLogins(ValidLogins)
 	else:
-		print >> ErrorLog, 'Timestamp:',datetime.now(),'\n','An Invalid User Level (',UserLevel,') was passed to the reference monitor for user',UserName,'.\n'
+		print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','An Invalid User Level (',UserLevel,') was passed to the reference monitor for user',UserName,'.\n'
 		
 # Logout Function
 # Removes the associated session ID / hash value from the relevant user privilege tuple
 # The hash is checked so that old session IDs cannot be used with valid users
 def LogoutSession(LogoutThisHashValue):
-	ValidLogins = RequestValidLogins()
-	for NameLevelHashTime in ValidLogins:
-		if (NameLevelHashTime[2] == LogoutThisHashValue):
-			ValidLogins.remove(NameLevelHashTime)
-			print >> LoginLog, 'Timestamp:',datetime.now(),'\n',NameLevelHashTime[1], '(', NameLevelHashTime[0], ') logged out.\n'
-			UpdateValidLogins(ValidLogins)
-			return('User successfully logged out!', 1)
+	# Set the requested hash value to LoggedOutHash = '0'*64 to indicate that the user is logged out
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""UPDATE users SET login_hash = %s WHERE login_hash = %s""", (LoggedOutHash, LogoutThisHashValue))
+	ReturnDict = dict(StatusMessage = 'User has been successfully logged out!', SuccessfulQuery = 1)
+	return(ReturnDict)
 			
-# Timeout Function
-# Disallows the processing of requests from session IDs/ login hashes if the
-# previous request was made more than 15 minutes prior.
-# If the request is made within 15 minutes of the previous one, then the 
-# session ID / login hash timestamp is refreshed.
-# For EVERY database request made by a user, this function must be called.
-def CheckForTimeout(LoginHash):
-	ValidLogins = RequestValidLogins()
-	for NameLevelHashTime in ValidLogins:
-		if (NameLevelHashTime[2] == HashAssociateWithRequest):
-			 TimeOfLastRequest = NameLevelHashTime[3]
-			 CurrentTime = datetime.now()
-			 TimeDifference = CurrentTime - TimeOfLastRequest 
-			 if (TimeDifference > TimeoutValue):
-				LogoutSession(LoginHash)
-		
+
 '''
 ~~~~~~******REQUEST VALIDATION******~~~~~~
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
 			
-def AuthenticateUser(UserName, Password, IP_Address):
-        #missing: Validate UserName.
+def AuthenticateUser(UserName, Password):
 
-	# Connect to SQL DB and Retrieve Information
-        DBPosition = PMPSDatabase.cursor()
-        DBPosition.execute("""SELECT password_salt, password_hash FROM users WHERE username = %s""", (UserName,))
-
-        row = DBPosition.fetchone()
-        if row == None:
-                return ("",0)
-
-        salt, expected_hash = row
-
-        this_hash = hash_utilities.CalcHash(salt, Password)
-
-        if this_hash == expected_hash:
-                login_hash = hash_utilities.GenRandomHash()
-
-		DBPosition.execute("""UPDATE users SET login_hash = %s, ip_address = %s WHERE username = %s""",
-		                   (login_hash, IP_Address, UserName))
-
-                return (login_hash,1)
-        else:
-                return("",0)
+	return('0x12345', 1)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
+	# Ensure the LoginHash is valid and has the proper permissions associated 
+        # with it (all authenticated users may use this function)
+        
+	#DBPosition = PMPSDatabase.cursor()
+        #DBPosition.execute("""SELECT * FROM users WHERE login_hash = %s""", (LoginHash))
+        #QueryResult = DBPosition.fetchone()
+	
+#	if (UserLevel in ValidUserLevels):
+ #               for NameLevelHashTime in ValidLogins: # Check for already logged in user
+  #                      if (NameLevelHashTime[0] == UserName):
+   #                             AlreadyLoggedIn = 1
+    #                            print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
+     #                   if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
+      #                          AlreadyLoggedIn = 1
+       #                         print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session
 
 	# Connect to SQL DB and Retrieve Information
 	DBPosition = PMPSDatabase.cursor() 
@@ -157,7 +166,7 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 	DBPosition = PMPSDatabase.cursor() 
 	DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
 	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.now(),'\n', 'AddNewPatient','\n'
+	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient','\n'
 	# Store the result as a dict for return
 	ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
 	return(ReturnDict)
@@ -168,7 +177,7 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 	DBPosition = PMPSDatabase.cursor() 
 	DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
 	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.now(),'\n', 'RemovePatient','\n'
+	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient','\n'
 	# Store the result as a dict for return
 	ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
 	return(ReturnDict)
@@ -179,7 +188,7 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 	DBPosition = PMPSDatabase.cursor() 
 	DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
 	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.now(),'\n', 'ModifyPatientName','\n'
+	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName','\n'
 	# Store the result as a dict for return
 	ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
 	return(ReturnDict)
@@ -190,7 +199,7 @@ def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	DBPosition = PMPSDatabase.cursor() 
 	DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
 	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.now(),'\n', 'AppendPatientInfo','\n'
+	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo','\n'
 	# Store the result as a dict for return
 	ReturnDict = dict(StatusMessage = 'Patient information has been successfully appended!', SuccessfulQuery = 1)
 	return(ReturnDict)
@@ -200,7 +209,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	DBPosition = PMPSDatabase.cursor() 
 	DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
 	# Keep track of query in the debug log
-	print >> DebugLog, 'Timestamp:',datetime.now(),'\n', 'ModifyPatientInfo','\n'
+	print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo','\n'
 	# Store the result as a dict for return
 	ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
 	return(ReturnDict)
