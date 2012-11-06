@@ -9,11 +9,28 @@ socket = context.socket(zmq.REQ)
 print "Connecting to backend server (subscriber)..."
 socket.connect ("tcp://localhost:1390")
 
+################################################################################
+# Test invalid username/password.
 out_stream = json.JSONEncoder().encode ( {
                  "method":"login",
                  "request": {
                      "username":"admin",
                      "password":"frootloops",
+                     "ip_address":"192.168.007.010" } } )
+
+socket.send (out_stream)
+
+in_stream = socket.recv()
+rep = json.loads(in_stream)
+print json.dumps(rep, indent=4)
+
+################################################################################
+# Test valid username/password.
+out_stream = json.JSONEncoder().encode ( {
+                 "method":"login",
+                 "request": {
+                     "username":"emt",
+                     "password":"password",
                      "ip_address":"192.168.007.010" } } )
 
 socket.send (out_stream)

@@ -5,7 +5,7 @@ import time
 import zmq
 
 def LoginUser(request):
-    login_hash, authenticated = refmon.AuthenticateUser(request["username"],request["password"])
+    login_hash, authenticated = refmon.AuthenticateUser(request["username"],request["password"],request["ip_address"])
     return {"authenticated":authenticated,"login_hash":login_hash}
 
 def GetProfile(request):
