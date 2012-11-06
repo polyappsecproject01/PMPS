@@ -24,4 +24,5 @@ from sqlreferencemonitor import *
 #CheckForTimeoutAll()
 UpdateTimestamp ('emt', '1000000000000000000000000000000000000000000000000000000000000000')
 GoodTestHash = '1' + '0'*63
-RetrievePatientInfo('Doe', 'John', GoodTestHash)
+RequestValidLogins()
+print RetrievePatientInfo('Doe', 'John', GoodTestHash)

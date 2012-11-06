@@ -34,7 +34,7 @@ LoginLog = open("loginlog.log", 'a')
 global TimeOutValue
 TimeOutValue = datetime.timedelta(minutes=15) # Login timeout value
 global ValidUserLevels
-ValidUserLevels = ['EMT', 'Doctor', 'Admin'] # Define the Valid User Levels
+ValidUserLevels = ['readonly', 'readwrite', 'Admin'] # Define the Valid User Levels
 global LoggedOutHash 
 LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
 
@@ -138,29 +138,30 @@ def AuthenticateUser(UserName, Password, IP_Address): # JV
                 return("",0)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
-	# Ensure the LoginHash is valid and has the proper permissions associated 
-        # with it (all authenticated users may use this function)
-        
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# All valid user levels may use this function	
+	PermissionsOKList = ValidUserLevels 
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
+	
 	print ValidLogins # Trace Entry
 	
-	#for UserHashLevel in ValidLogins:
-	#	if (ValidLogins[1] == LoginHash):
-		#	if  # continue working here
-
-
-               #                  print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',UserName,') Already Logged In.\n'
-                #         if (NameLevelHashTime[2] == LoginHash): # Check for already used hash value / session ID
-                 #               AlreadyLoggedIn = 1
-                  #              print >> ErrorLog, 'Timestamp:',datetime.datetime.now(),'\n','User (',NameLevelHashTime[0],') is Already Using the Session
-
-	# Connect to SQL DB and Retrieve Information
-	DBPosition = PMPSDatabase.cursor() 
-	DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-	QueryResult = DBPosition.fetchone()
-	# Store the result as a dict for return
-	ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# Connect to SQL DB and Retrieve Information
+			DBPosition = PMPSDatabase.cursor() 
+			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+			QueryResult = DBPosition.fetchone()
+			# Store the result as a dict for return
+			ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
+			SuccessfulQuery = 1
+			# On successful request, update the timestamp 
+			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to retrieve patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
