@@ -28,13 +28,14 @@ PMPSDatabase = MySQLdb.connect(user=dbinfodata[0], passwd=dbinfodata[1], db=dbin
 # Initialize Logs
 ErrorLog = open("errorlog.log", 'a')
 DebugLog = open("debuglog.log", 'a')
+ActivityLog = open("activitylog.log", 'a')
 LoginLog = open("loginlog.log", 'a')
 
 # Global Constants
 global TimeOutValue
 TimeOutValue = datetime.timedelta(minutes=15) # Login timeout value
 global ValidUserLevels
-ValidUserLevels = ['readonly', 'readwrite', 'admin'] # Define the Valid User Levels
+ValidUserLevels = ['readonly', 'readwrite', 'admin'] # Define the Valid User Levels (e.g. corresponding to EMT, Doctor, Admin)
 global LoggedOutHash 
 LoggedOutHash = '0'*64 # If the user is logged out the hash will read all zeros
 
@@ -156,8 +157,8 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
 			QueryResult = DBPosition.fetchone()
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -185,8 +186,8 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 			# Connect to the SQL DB and Add New Patient
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -214,8 +215,8 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 			# Connect to the SQL DB and Remove Patient
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient by',UserHashLevel[0],'\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -243,8 +244,8 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 			# Connect to the SQL DB and Modify Patient Name
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName','\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -257,8 +258,8 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
-	# Only those with admin permissions can access this (Admins only)	
-	PermissionsOKList = ValidUserLevels[2:]
+	# Only those with write permissions can access this (Admins and Doctors only)	
+	PermissionsOKList = ValidUserLevels[1:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
 	
@@ -272,8 +273,8 @@ def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 			# Connect to the SQL DB and Modify Patient Name
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo','\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(StatusMessage = 'Patient information has been successfully appended!', SuccessfulQuery = 1)
 			SuccessfulQuery = 1
@@ -301,8 +302,8 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 			# Connect to the SQL DB and Modify Patient Name
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-			# Keep track of query in the debug log
-			print >> DebugLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo','\n'
+			# Keep track of query in the activity log
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo by',UserHashLevel[0],'\n'
 			# Store the result as a dict for return
 			ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
 			SuccessfulQuery = 1
