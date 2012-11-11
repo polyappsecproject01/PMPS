@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 <title>Patient Medical Profile System - EMT View</title> 
 <script type="text/javascript" src="initialValidation.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="style.css" />
 </head> 
 <body> 
@@ -24,9 +25,9 @@
         <form action="" method="POST">
             <tr>
             <td>
-            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this)" />
-            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this)" />
-            <input type="submit" value="Find Patient">
+            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'retPatError')" />
+            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'retPatError')" />
+            <input type="submit" value="Find Patient"><td id="retPatError"></td>
             </td>
             </tr>
             <tr><td><p id="vResults"></p></td></tr>

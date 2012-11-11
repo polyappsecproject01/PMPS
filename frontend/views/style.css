@@ -53,6 +53,43 @@ p, span, div, li, a, input, button {
 	max-width: 500px;
 }
 
+
+#retPatError {
+	font-family: 'Raleway', sans-serif;
+	color:#BE2C07;
+	font-size:13px;
+}
+
+#addPatError {
+	font-family: 'Raleway', sans-serif;
+	color:#BE2C07;
+	font-size:13px;
+}
+
+#remPatError {
+	font-family: 'Raleway', sans-serif;
+	color:#BE2C07;
+	font-size:13px;
+}
+
+#modPatNameError {
+	font-family: 'Raleway', sans-serif;
+	color:#BE2C07;
+	font-size:13px;
+	display:inline;
+	margin-left:5px;
+}
+
+#modPatInfoError {
+	font-family: 'Raleway', sans-serif;
+	color:#BE2C07;
+	font-size:13px;
+	display:inline;
+	margin-left:5px;
+}
+
+
+
 .tab {
 	width:300px;
 	font-size:13px;

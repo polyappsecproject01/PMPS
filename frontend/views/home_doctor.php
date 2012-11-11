@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 <title>Patient Medical Profile System - EMT View</title> 
 <script type="text/javascript" src="initialValidation.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="style.css" />
 </head> 
 <body> 
@@ -24,9 +25,9 @@
         <form action="" method="POST">
             <tr>
             <td>
-            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this)" />
-            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this)" />
-            <input type="submit" value="Find Patient">
+            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'retPatError')" />
+            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'retPatError')" />
+            <input type="submit" value="Find Patient"><td id="retPatError"></td>
             </td>
             </tr> 
          </form>
@@ -37,9 +38,9 @@
         <form action="" method="POST">
             <tr>
             <td>
-            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this)" />
-            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this)" />
-            <input type="submit" value="Add Patient">
+            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'addPatError')" />
+            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'addPatError')" />
+            <input type="submit" value="Add Patient"><td id="addPatError"></td>
             </td> 
             </tr> 
          </form>
@@ -48,13 +49,13 @@
         <h3>Append Patient Info</h3><br />
         <form action="" method="POST">
         <table class="tab">
-            <tr><td>First Name:<input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this)" /></td><td>Last Name:<input type="text" maxlength="30" name="patLastName" onchange="validLastName(this)" /></td></tr>
-            <tr><td>Patient Blood Type:<select name="patBloodType"><option value="O+">O+</option><option value="O-">O-</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></td><td>Allergies:<input type="text" name="patAllergies" maxlength="500" onchange="validAllergies(this)" /></td><td>ICELastName:<input type="text" maxlength="30" name="patICELastName" onchange="validICELastName(this)" /></td><td>ICEFirstName:<input type="text" maxlength="30" name="patICEFirstName" onchange="validICEFirstName(this)" /></td></tr>
-            <tr><td>ICEPhone:<input type="text" maxlength="16" name="patICEPhone" onchange="validICEPhone(this)" /></td><td>PCPLastName:<input type="text" maxlength="30" name="patPCPLastName" onchange="validPCPLastName(this)" /></td><td>PCPFirstName:<input type="text" maxlength="30" name="patPCPFirstName" onchange="validPCPFirstName(this)" /></td><td>PCPPhone:<input type="text" maxlength="16" name="patPCPPhone" onchange="validPCPPhone(this)" /></td></tr>
+            <tr><td>First Name:<input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'modPatInfoError')" /></td><td>Last Name:<input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'modPatInfoError')" /></td></tr>
+            <tr><td>Patient Blood Type:<select name="patBloodType"><option value="O+">O+</option><option value="O-">O-</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></td><td>Allergies:<input type="text" name="patAllergies" maxlength="500" onchange="validAllergies(this,'modPatInfoError')" /></td><td>ICELastName:<input type="text" maxlength="30" name="patICELastName" onchange="validICELastName(this,'modPatInfoError')" /></td><td>ICEFirstName:<input type="text" maxlength="30" name="patICEFirstName" onchange="validICEFirstName(this,'modPatInfoError')" /></td></tr>
+            <tr><td>ICEPhone:<input type="text" maxlength="16" name="patICEPhone" onchange="validICEPhone(this,'modPatInfoError')" /></td><td>PCPLastName:<input type="text" maxlength="30" name="patPCPLastName" onchange="validPCPLastName(this,'modPatInfoError')" /></td><td>PCPFirstName:<input type="text" maxlength="30" name="patPCPFirstName" onchange="validPCPFirstName(this,'patPCPFirstName')" /></td><td>PCPPhone:<input type="text" maxlength="16" name="patPCPPhone" onchange="validPCPPhone(this,'patPCPPhone')" /></td></tr>
             </table>
-            <h5>Notes:</h5><br /><textarea name="patNotes" maxlength="5000" cols="40" rows="3" onchange="validNotes(this)"></textarea>
+            <h5>Notes:</h5><br /><textarea name="patNotes" maxlength="5000" cols="40" rows="3" onchange="validNotes(this,'modPatInfoError')"></textarea>
             <br />
-            <input type="submit" value="Append Patient Info">
+            <input type="submit" value="Append Patient Info"><div id="modPatInfoError"></div>
          </form>
         </div> <!-- END OF DIV main !-->
 	<div id="results">
