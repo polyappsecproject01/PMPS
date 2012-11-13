@@ -270,7 +270,7 @@ def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
 		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Modify Patient Name
+			# Connect to the SQL DB and Modify Append Patient Info
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
 			# Keep track of query in the activity log
@@ -312,3 +312,47 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	if  (SuccessfulQuery == 0):
 		ReturnDict = dict(Message = 'Failed to modify patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
+
+def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, LoginHash):
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2)
+	if (NewUserPass1 == NewUserPass2):
+		for UserHashLevel in ValidLogins:  
+			print UserHashLevel[1]
+			if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+				# Ensure the user name does not already exist 
+				DBPosition = PMPSDatabase.cursor()
+				DBPosition.execute("""SELECT username FROM users WHERE username = %s""", (NewUserName))
+				CurrentUsers = DBPosition.fetchone()
+				if (CurrentUsers == ''): # if current user does not exist
+					# Calculate the salt and hash for storage
+					PasswordSalt = GenRandomHash()
+					PasswordHash = CalcHash(PasswordSalt, NewUserPass1)
+					DBPosition = PMPSDatabase.cursor() 
+					# Add new user
+					DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash) VALUES (%s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash))
+					# Keep track of query in the activity log
+					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'\n'
+					# Store the result as a dict for return
+					ReturnDict = dict(StatusMessage = 'New user has been successfully added!', SuccessfulQuery = 1)
+					SuccessfulQuery = 1
+					# On successful request, update the timestamp 
+					UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+				else:
+					ReturnDict = dict(Message = 'User already exists!', SuccessfulQuery = 0)
+					SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
+	else:
+		ReturnDict = dict(Message = 'The passwords selected for the new user did not match!', SuccessfulQuery = 0)
+		SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to add new user!', SuccessfulQuery = 0)
+	return(ReturnDict)	
