@@ -48,3 +48,27 @@ AppendPatientInfo
 Timestamp: 2012-11-05 00:41:58.601296 
 ModifyPatientInfo 
 
+Timestamp: 2012-11-06 16:21:39.299597 
+RetrievePatientInfo by emt 
+
+Timestamp: 2012-11-06 16:24:30.545686 
+ModifyPatientInfo 
+
+Timestamp: 2012-11-06 16:28:55.091319 
+AddNewPatient by emt 
+
+Timestamp: 2012-11-06 16:51:05.641517 
+AddNewPatient by emt 
+
+Timestamp: 2012-11-06 16:51:05.642576 
+RemovePatient by emt 
+
+Timestamp: 2012-11-06 17:15:19.699264 
+ModifyPatientInfo 
+
+Timestamp: 2012-11-06 17:15:47.120859 
+ModifyPatientInfo 
+
+Timestamp: 2012-11-06 17:17:03.827376 
+ModifyPatientName 
+

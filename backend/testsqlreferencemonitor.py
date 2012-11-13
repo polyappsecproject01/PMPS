@@ -17,13 +17,13 @@ from sqlreferencemonitor import *
 #print RemovePatient('C','Anthony', 12345)
 #print ModifyPatientName('C', 'Anthony', 'Ryan', 'Nolan', 12345)
 #CheckForTimeoutAll()
-UpdateTimestamp ('emt', '1000000000000000000000000000000000000000000000000000000000000000')
 GoodTestHash = '1' + '0'*63
-print AddNewPatient('Lando', 'Calrissian', GoodTestHash)
-print RemovePatient('Lando', 'Calrissian', GoodTestHash)
+UpdateTimestamp ('admin', GoodTestHash)
+#print AddNewPatient('Lando', 'Calrissian', GoodTestHash)
+#print RemovePatient('Lando', 'Calrissian', GoodTestHash)
 #print AddNewPatient('C','Anthony', GoodTestHash)
 #RequestValidLogins()
 #print RetrievePatientInfo('Doe', 'John', GoodTestHash)
 #print ModifyPatientName('Lando', 'Calrissian', 'Fat', 'Tony', GoodTestHash)
 #print ModifyPatientInfo('Ryan', 'Nolan', 'O+', 'Penicillin', 'Ryan', 'Julie', '1234567890', 'Charles', 'Xavier', '2345678901', 'This patient is completely insane and a danger to society', GoodTestHash)
-
+AddNewUser('Anthony', 'admin', 'awesomepassword', 'awesomepasssword', GoodTestHash)

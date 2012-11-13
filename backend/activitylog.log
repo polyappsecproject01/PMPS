@@ -1,0 +1,16 @@
+Timestamp: 2012-11-13 02:10:42.147260 
+AddNewUser by admin 
+
+Timestamp: 2012-11-13 02:12:14.655585 
+AddNewUser by admin 
+
+Timestamp: 2012-11-13 02:32:14.321908 
+AddNewUser by admin Failed: User already exists! 
+
+Timestamp: 2012-11-13 02:34:39.209205 
+AddNewUser by admin Failed: User already exists! 
+
+Timestamp: 2012-11-13 02:34:53.285278 
+AddNewUser byTimestamp: 2012-11-13 02:38:35.862414 
+AddNewUser Failed: The passwords selected for the new user did not match! 
+
