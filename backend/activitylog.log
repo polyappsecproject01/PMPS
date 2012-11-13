@@ -14,3 +14,34 @@ Timestamp: 2012-11-13 02:34:53.285278
 AddNewUser byTimestamp: 2012-11-13 02:38:35.862414 
 AddNewUser Failed: The passwords selected for the new user did not match! 
 
+Timestamp: 2012-11-13 03:05:28.322893 
+AddNewUser by admin (Successful) 
+
+Timestamp: 2012-11-13 03:22:37.578954 
+AddNewUser Failed: The passwords selected for the new user did not match or the requested access level is invalid! 
+
+Timestamp: 2012-11-13 03:23:56.883694 
+AddNewUser by admin (Successful) 
+
+Timestamp: 2012-11-13 03:55:08.062372 
+AddNewUser byTimestamp: 2012-11-13 03:56:06.485712 
+AddNewUser Failed: No valid sessions are active!  Please log in and try again. 
+
+Timestamp: 2012-11-13 03:56:43.306255 
+AddNewUser Failed: No valid sessions are active!  Please log in and try again. 
+
+Timestamp: 2012-11-13 03:58:21.261519 
+AddNewUser by Anthony (Successful) 
+
+Timestamp: 2012-11-13 03:59:56.884178 
+AddNewUser by Anthony (Successful) 
+
+Timestamp: 2012-11-13 04:13:01.544616 
+AuthenticateUser Failed: User Name does not exist 
+
+Timestamp: 2012-11-13 04:13:09.909683 
+AuthenticateUser Failed: User Name does not exist 
+
+Timestamp: 2012-11-13 04:14:10.021731 
+AuthenticateUser Failed: Password incorrect 
+

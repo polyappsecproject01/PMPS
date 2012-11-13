@@ -113,30 +113,37 @@ def LogoutSession(LogoutThisHashValue):
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
 
-def AuthenticateUser(UserName, Password, IP_Address): # JV
+def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, began lockout code)
         #missing: Validate UserName.
 
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
-        DBPosition.execute("""SELECT password_salt, password_hash FROM users WHERE username = %s""", (UserName,))
-
+        DBPosition.execute("""SELECT password_salt, password_hash FROM users WHERE username = %s""", (UserName))
         row = DBPosition.fetchone()
         if row == None:
+		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0) # Purposely inspecific
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: User Name does not exist','\n'
                 return ("",0)
 
         salt, expected_hash = row
 
-        this_hash = hash_utilities.CalcHash(salt, Password)
+        this_hash = CalcHash(salt, Password)
 
         if this_hash == expected_hash:
-                login_hash = hash_utilities.GenRandomHash()
+                login_hash = GenRandomHash()
 
-                DBPosition.execute("""UPDATE users SET login_hash = %s, ip_address = %s WHERE username = %s""",
-                                   (login_hash, IP_Address, UserName))
+                DBPosition.execute("""UPDATE users SET login_hash = %s WHERE username = %s""",
+                                   (login_hash, UserName))
+		UpdateTimestamp(UserName, login_hash) # AC added to complete validation of the new session
 
                 return (login_hash,1)
         else:
-                return("",0)
+		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Password incorrect','\n'
+                # Increment the user lockout counter due to incorrect password entry
+		#DBPosition = PMPSDatabase.cursor()
+		#DBPosition.execute("""SELECT lockout_counter FROM users WHERE username = %s""", (UserName))
+		return("",0)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 
@@ -324,10 +331,14 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, Logi
 	
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
-	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2)
-	if (NewUserPass1 == NewUserPass2):
-		print "Passwords match" # Trace
-		for UserHashLevel in ValidLogins:  
+	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2) and that the access level assigned is valid
+	if ((NewUserPass1 == NewUserPass2) & (NewUserAccessLevel in ValidUserLevels)):
+		print "Passwords match, valid access level requested." # Trace
+		if (ValidLogins == ()):
+			ReturnDict = dict(Message = 'No valid sessions are active!  Please log in and try again.', SuccessfulQuery = 0)
+			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed:',ReturnDict['Message'],'\n'
+			SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
+		for UserHashLevel in ValidLogins:  			
 			if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
 				print "Valid hash with proper permissions found!", UserHashLevel[1] # Trace
 				# Ensure the user name does not already exist 
@@ -341,7 +352,7 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, Logi
 					PasswordHash = CalcHash(PasswordSalt, NewUserPass1)
 					DBPosition = PMPSDatabase.cursor() 
 					# Add new user
-					DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash) VALUES (%s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash))
+					DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash, accesslevel) VALUES (%s, %s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash, NewUserAccessLevel))
 					# Keep track of query in the activity log
 					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'(Successful)','\n'
 					# Store the result as a dict for return
@@ -353,8 +364,12 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, Logi
 					ReturnDict = dict(Message = 'User already exists!', SuccessfulQuery = 0)
 					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'Failed:',ReturnDict['Message'],'\n'
 					SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
+			else: 
+				ReturnDict = dict(Message = 'Invalid User Hash (Session ID) or User Permissions do not allow this operation!', SuccessfulQuery = 0)
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'Failed:',ReturnDict['Message'],'\n'
+				SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
 	else:
-		ReturnDict = dict(Message = 'The passwords selected for the new user did not match!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'The passwords selected for the new user did not match or the requested access level is invalid!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed:',ReturnDict['Message'],'\n'
 		SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.
 	if  (SuccessfulQuery == 0):

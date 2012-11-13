@@ -1,6 +1,7 @@
 # Test Code for SQL POPO
 
 from sqlreferencemonitor import *
+from hash_utilities import *
 
 #AddValidatedSession('Lando','EMT',12345)
 #AddValidatedSession('Lando','EMT',12395)
@@ -17,8 +18,8 @@ from sqlreferencemonitor import *
 #print RemovePatient('C','Anthony', 12345)
 #print ModifyPatientName('C', 'Anthony', 'Ryan', 'Nolan', 12345)
 #CheckForTimeoutAll()
-GoodTestHash = '1' + '0'*63
-UpdateTimestamp ('admin', GoodTestHash)
+GoodTestHash = '1'+'0'*63
+UpdateTimestamp ('Anthony', GoodTestHash)
 #print AddNewPatient('Lando', 'Calrissian', GoodTestHash)
 #print RemovePatient('Lando', 'Calrissian', GoodTestHash)
 #print AddNewPatient('C','Anthony', GoodTestHash)
@@ -26,4 +27,7 @@ UpdateTimestamp ('admin', GoodTestHash)
 #print RetrievePatientInfo('Doe', 'John', GoodTestHash)
 #print ModifyPatientName('Lando', 'Calrissian', 'Fat', 'Tony', GoodTestHash)
 #print ModifyPatientInfo('Ryan', 'Nolan', 'O+', 'Penicillin', 'Ryan', 'Julie', '1234567890', 'Charles', 'Xavier', '2345678901', 'This patient is completely insane and a danger to society', GoodTestHash)
-AddNewUser('Anthony', 'admin', 'awesomepassword', 'awesomepasssword', GoodTestHash)
+#AddNewUser('Doctorman', 'readwrite', 'awesomepassword', 'awesomepassword', GoodTestHash)
+AuthenticateUser('Anthony', 'wrongpassword')
+#AddNewUser('EMTdude', 'readonly', 'awesomepassword', 'awesomepassword', GoodTestHash)
+#AddNewUser('Adminguy', 'admin', 'awesomepassword', 'awesomepassword', GoodTestHash)
