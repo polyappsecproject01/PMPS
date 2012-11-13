@@ -113,8 +113,7 @@ def LogoutSession(LogoutThisHashValue):
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
 
-def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, began lockout code)
-        #missing: Validate UserName.
+def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code)
 
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
@@ -123,9 +122,18 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
         if row == None:
 		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0) # Purposely inspecific
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: User Name does not exist','\n'
-                return ("",0)
+                return (ReturnDict)
+	
+	# Check for lockout, and if true, do not try to authenticate
+	DBPosition = PMPSDatabase.cursor()
+	DBPosition.execute("""SELECT lockout_counter FROM users WHERE username = %s""", (UserName))
+	CurrentCount = DBPosition.fetchone()
+ 	if CurrentCount[0] == 'Locked':
+		ReturnDict = dict(Message = 'This account is locked due to multiple unsuccessful login attempts, please contact an Administrator!', SuccessfulQuery = 0) # Purposely inspecific
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Account is locked.','\n'
+		return (ReturnDict)
 
-        salt, expected_hash = row
+	salt, expected_hash = row
 
         this_hash = CalcHash(salt, Password)
 
@@ -134,16 +142,36 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 
                 DBPosition.execute("""UPDATE users SET login_hash = %s WHERE username = %s""",
                                    (login_hash, UserName))
-		UpdateTimestamp(UserName, login_hash) # AC added to complete validation of the new session
+		UpdateTimestamp(UserName, login_hash) # Added to complete validation of the new session
 
-                return (login_hash,1)
-        else:
+		DBPosition = PMPSDatabase.cursor() # Need to reset the lockout counter to 0
+		DBPosition.execute("""UPDATE users SET lockout_counter = %s WHERE username = %s""", (0,UserName))
+		CurrentCount = DBPosition.fetchone()
+
+		ReturnDict = dict(LoginHash = login_hash, SuccessfulQuery = 1) # Changed to dictionary to be consistant with other functions
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser',UserName,'Successful!','\n'
+		return (ReturnDict)
+        
+	else:
+		
 		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Password incorrect','\n'
                 # Increment the user lockout counter due to incorrect password entry
-		#DBPosition = PMPSDatabase.cursor()
-		#DBPosition.execute("""SELECT lockout_counter FROM users WHERE username = %s""", (UserName))
-		return("",0)
+		DBPosition = PMPSDatabase.cursor()
+		DBPosition.execute("""SELECT lockout_counter FROM users WHERE username = %s""", (UserName))
+		CurrentCount = DBPosition.fetchone()
+		if (CurrentCount[0] <> 'Locked'):
+			CurrentCount = int(CurrentCount[0])
+			NewCount = CurrentCount+1
+			DBPosition = PMPSDatabase.cursor()
+			DBPosition.execute("""UPDATE users SET lockout_counter = %s WHERE username = %s""", (NewCount, UserName))		
+			# If the count is 5 or more (somehow) then lock the account
+			if (NewCount > 4):
+				LockedAccount = 'Locked'
+				DBPosition = PMPSDatabase.cursor()
+				DBPosition.execute("""UPDATE users SET lockout_counter = %s WHERE username = %s""", (LockedAccount, UserName))		
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'User',UserName,'account is locked due to five consecutive incorrect password attempts.','\n'
+		return(ReturnDict)
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 
