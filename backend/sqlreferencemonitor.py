@@ -318,7 +318,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 		ReturnDict = dict(Message = 'Failed to modify patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
-def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, LoginHash):
+def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
@@ -329,8 +329,8 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, Logi
 	
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
-	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2) and that the access level assigned is valid
-	if ((NewUserPass1 == NewUserPass2) & (NewUserAccessLevel in ValidUserLevels)):
+	# First ensure that the access level assigned is valid
+	if (NewUserAccessLevel in ValidUserLevels):
 		print "Passwords match, valid access level requested." # Trace
 		if (ValidLogins == ()):
 			ReturnDict = dict(Message = 'No valid sessions are active!  Please log in and try again.', SuccessfulQuery = 0)
@@ -347,7 +347,7 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass1, NewUserPass2, Logi
 				if (DuplicateUsers == None): # if current user does not exist
 					# Calculate the salt and hash for storage
 					PasswordSalt = GenRandomHash()
-					PasswordHash = CalcHash(PasswordSalt, NewUserPass1)
+					PasswordHash = CalcHash(PasswordSalt, NewUserPass)
 					DBPosition = PMPSDatabase.cursor() 
 					# Add new user
 					DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash, accesslevel) VALUES (%s, %s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash, NewUserAccessLevel))
