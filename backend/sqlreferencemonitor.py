@@ -290,40 +290,10 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 		ReturnDict = dict(Message = 'Failed to modify patient name!', SuccessfulQuery = 0)
 	return(ReturnDict)
 
-def AppendPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
-	
+def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Admins and Doctors only)	
 	PermissionsOKList = ValidUserLevels[1:]
-	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
-	# Tuple form: [(username, login_hash, accesslevel)] 
-	
-	print ValidLogins # Trace Entry
-	
-	# Check the corresponding Login Hash (Session ID) and check the user's permission level
-	SuccessfulQuery = 0 # Variable to check if the query returns anything
-	for UserHashLevel in ValidLogins:  
-		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Modify Append Patient Info
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPFirstName, PatientPCPLastName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AppendPatientInfo by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(StatusMessage = 'Patient information has been successfully appended!', SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
-	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to append patient information!', SuccessfulQuery = 0)
-
-	return(ReturnDict)
-
-def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
-	# Ensure the LoginHash is valid and has the proper permissions associated with it.
-	# Only those with admin permissions can access this (Admins only)	
-	PermissionsOKList = ValidUserLevels[2:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
 	
