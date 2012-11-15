@@ -1,0 +1,176 @@
+Timestamp: 2012-11-13 02:10:42.147260 
+AddNewUser by admin 
+
+Timestamp: 2012-11-13 02:12:14.655585 
+AddNewUser by admin 
+
+Timestamp: 2012-11-13 02:32:14.321908 
+AddNewUser by admin Failed: User already exists! 
+
+Timestamp: 2012-11-13 02:34:39.209205 
+AddNewUser by admin Failed: User already exists! 
+
+Timestamp: 2012-11-13 02:34:53.285278 
+AddNewUser byTimestamp: 2012-11-13 02:38:35.862414 
+AddNewUser Failed: The passwords selected for the new user did not match! 
+
+Timestamp: 2012-11-13 03:05:28.322893 
+AddNewUser by admin (Successful) 
+
+Timestamp: 2012-11-13 03:22:37.578954 
+AddNewUser Failed: The passwords selected for the new user did not match or the requested access level is invalid! 
+
+Timestamp: 2012-11-13 03:23:56.883694 
+AddNewUser by admin (Successful) 
+
+Timestamp: 2012-11-13 03:55:08.062372 
+AddNewUser byTimestamp: 2012-11-13 03:56:06.485712 
+AddNewUser Failed: No valid sessions are active!  Please log in and try again. 
+
+Timestamp: 2012-11-13 03:56:43.306255 
+AddNewUser Failed: No valid sessions are active!  Please log in and try again. 
+
+Timestamp: 2012-11-13 03:58:21.261519 
+AddNewUser by Anthony (Successful) 
+
+Timestamp: 2012-11-13 03:59:56.884178 
+AddNewUser by Anthony (Successful) 
+
+Timestamp: 2012-11-13 04:13:01.544616 
+AuthenticateUser Failed: User Name does not exist 
+
+Timestamp: 2012-11-13 04:13:09.909683 
+AuthenticateUser Failed: User Name does not exist 
+
+Timestamp: 2012-11-13 04:14:10.021731 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:30:47.107045 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:31:17.181365 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:32:15.432038 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:32:48.845765 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:42:48.640973 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:43:53.704130 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:44:08.579272 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:44:13.014845 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:44:15.727216 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:44:25.067228 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:44:25.067601 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 04:48:01.448162 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:48:01.448564 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 04:48:08.718988 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:48:08.719426 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 04:49:31.333635 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:49:31.334551 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 04:51:00.460064 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:51:21.637351 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:51:29.535451 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:51:30.114593 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:51:30.654134 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:51:30.654668 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 04:51:31.159571 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:52:06.760439 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 04:52:51.874425 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:53.531801 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:56.117638 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:57.025895 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:57.565695 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:58.104754 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:23:58.105286 
+User Anthony account is locked due to five consecutive incorrect password attempts. 
+
+Timestamp: 2012-11-13 11:23:58.666004 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:24:41.480452 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:25:47.633682 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:25:49.087924 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:25:49.875578 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 11:53:55.395141 
+AuthenticateUser Failed: User Name does not exist 
+
+Timestamp: 2012-11-13 12:01:11.989114 
+AuthenticateUser Failed: Account is locked. 
+
+Timestamp: 2012-11-13 12:01:37.064709 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 12:01:42.643894 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 12:01:44.192109 
+AuthenticateUser Failed: Password incorrect 
+
+Timestamp: 2012-11-13 12:03:10.679364 
+AuthenticateUser Anthony Successful! 
+
