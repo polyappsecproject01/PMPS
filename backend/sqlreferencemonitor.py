@@ -148,7 +148,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		DBPosition.execute("""UPDATE users SET lockout_counter = %s WHERE username = %s""", (0,UserName))
 		CurrentCount = DBPosition.fetchone()
 
-< 		ReturnDict = {"LoginHash":login_hash,"SuccessfulQuery":1,"accesslevel":accesslevel}
+ 		ReturnDict = {"LoginHash":login_hash,"SuccessfulQuery":1,"accesslevel":accesslevel}
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser',UserName,'Successful!','\n'
 		return (ReturnDict)
         
@@ -372,4 +372,34 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 		SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.
 	if  (SuccessfulQuery == 0):
 		ReturnDict = dict(Message = 'Failed to add new user!', SuccessfulQuery = 0)
+	return(ReturnDict)	
+
+def RemoveUser(UserName, LoginHash):
+	# Ensure the LoginHash is valid and has the proper permissions associated with it.
+	# Only those with admin permissions can access this (Admins only)	
+	PermissionsOKList = ValidUserLevels[2:]
+	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
+	# Tuple form: [(username, login_hash, accesslevel)] 
+	
+	print ValidLogins # Trace Entry
+	
+	# Check the corresponding Login Hash (Session ID) and check the user's permission level
+	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2)
+	for UserHashLevel in ValidLogins:  
+		print UserHashLevel[1]
+		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
+			# And the specified username is not the same as the user requesting the removal (user cannot remove his/herself)
+			if (UserHashLevel[0] <> UserName):
+				# Then remove the specified user
+				DBPosition = PMPSDatabase.cursor()
+				DBPosition.execute("""DELETE FROM users WHERE username = %s""", (UserName))
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemoveUser by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(StatusMessage = 'User has been successfully removed!', SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+	if  (SuccessfulQuery == 0):
+		ReturnDict = dict(Message = 'Failed to remove user!', SuccessfulQuery = 0)
 	return(ReturnDict)	
