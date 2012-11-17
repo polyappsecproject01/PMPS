@@ -117,7 +117,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
-        DBPosition.execute("""SELECT password_salt, password_hash FROM users WHERE username = %s""", (UserName))
+        DBPosition.execute("""SELECT password_salt, password_hash, accesslevel FROM users WHERE username = %s""", (UserName))
         row = DBPosition.fetchone()
         if row == None:
 		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0) # Purposely inspecific
@@ -133,7 +133,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Account is locked.','\n'
 		return (ReturnDict)
 
-	salt, expected_hash = row
+	salt, expected_hash, accesslevel = row
 
         this_hash = CalcHash(salt, Password)
 
@@ -148,7 +148,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		DBPosition.execute("""UPDATE users SET lockout_counter = %s WHERE username = %s""", (0,UserName))
 		CurrentCount = DBPosition.fetchone()
 
-		ReturnDict = dict(LoginHash = login_hash, SuccessfulQuery = 1) # Changed to dictionary to be consistant with other functions
+< 		ReturnDict = {"LoginHash":login_hash,"SuccessfulQuery":1,"accesslevel":accesslevel}
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser',UserName,'Successful!','\n'
 		return (ReturnDict)
         
