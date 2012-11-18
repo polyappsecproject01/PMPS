@@ -192,13 +192,14 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 			DBPosition = PMPSDatabase.cursor() 
 			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
 			QueryResult = DBPosition.fetchone()
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+			if (QueryResult <> None): # If there is a result found
+				# Keep track of query in the activity log
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
 		ReturnDict = dict(Message = 'Failed to retrieve patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
