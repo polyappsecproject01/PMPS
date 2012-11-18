@@ -1,3 +1,10 @@
+<?php
+require_once('./validation.php');
+
+session_start();
+sessionAuthenticateDoctor();
+
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml"> 
 <head> 
@@ -9,12 +16,12 @@
 </head> 
 <body> 
 <div id="container">
+	<header>
+    	<img id="logoPic" src="logo_pmpsc.png" onmouseover="this.src='logo_pmpsc_on.png';" onmouseout="this.src='logo_pmpsc.png'"/><br /><br />
+	</header>
 	<div id="userView">
-        <img id="logoPic" src="logo_pmpsc.png" onmouseover="this.src='logo_pmpsc_on.png';" onmouseout="this.src='logo_pmpsc.png'"/><br /><br />
-        <h3>Status:</h3><h4> Logged in as [USERNAME]</h4>
-        <!-- Use the session code here so we can output the user name to the screen !-->
-        
-        <form method="POST" action="logout.php">
+   		<form method="POST" action="logout.php">
+        <h3>Status:</h3><h4><?php  if (isset($_SESSION["username"])) echo "Logged in as <b>".$_SESSION["username"]."</b>";  ?></h4>
         <input type="submit" value="Logout">
         </form>
         
@@ -22,7 +29,7 @@
         <br />
         <h3>Retrieve Patient Info:</h3><br />
         <table>
-        <form action="" method="POST">
+        <form action="retPatInfo.php" method="POST">
             <tr>
             <td>
             <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'retPatError')" />
@@ -33,21 +40,20 @@
          </form>
         </table>
         <br />
-        <h3>Add New Patient:</h3><br />
-        <table>
-        <form action="" method="POST">
-            <tr>
-            <td>
-            <h4>First Name:</h4><input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'addPatError')" />
-            <h4>Last Name:</h4><input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'addPatError')" />
-            <input type="submit" value="Add Patient"><td id="addPatError"></td>
-            </td> 
-            </tr> 
+        <h3>Add Patient with Medical Profile</h3><br />
+        <form action="addPat.php" method="POST">
+        <table class="tab">
+            <tr><td>First Name:<input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'addPatError')" /></td><td>Last Name:<input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'addPatError')" /></td></tr>
+            <tr><td>Patient Blood Type:<select name="patBloodType"><option value="O+">O+</option><option value="O-">O-</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></td><td>Allergies:<input type="text" name="patAllergies" maxlength="500" onchange="validAllergies(this,'addPatError')" /></td><td>ICELastName:<input type="text" maxlength="30" name="patICELastName" onchange="validICELastName(this,'addPatError')" /></td><td>ICEFirstName:<input type="text" maxlength="30" name="patICEFirstName" onchange="validICEFirstName(this,'addPatError')" /></td></tr>
+            <tr><td>ICEPhone:<input type="text" maxlength="16" name="patICEPhone" onchange="validICEPhone(this,'addPatError')" /></td><td>PCPLastName:<input type="text" maxlength="30" name="patPCPLastName" onchange="validPCPLastName(this,'addPatError')" /></td><td>PCPFirstName:<input type="text" maxlength="30" name="patPCPFirstName" onchange="validPCPFirstName(this,'addPatError')" /></td><td>PCPPhone:<input type="text" maxlength="16" name="patPCPPhone" onchange="validPCPPhone(this,'addPatError')" /></td></tr>
+            </table>
+            <h5>Notes:</h5><br /><textarea name="patNotes" maxlength="5000" cols="40" rows="3" onchange="validNotes(this,'addPatError')"></textarea>
+            <br />
+            <input type="submit" value="Add Patient"><div id="addPatError"></div>
          </form>
-        </table>
         <br />
         <h3>Append Patient Info</h3><br />
-        <form action="" method="POST">
+        <form action="modPatInfo.php" method="POST">
         <table class="tab">
             <tr><td>First Name:<input type="text" maxlength="30" name="patFirstName" onchange="validFirstName(this,'modPatInfoError')" /></td><td>Last Name:<input type="text" maxlength="30" name="patLastName" onchange="validLastName(this,'modPatInfoError')" /></td></tr>
             <tr><td>Patient Blood Type:<select name="patBloodType"><option value="O+">O+</option><option value="O-">O-</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></td><td>Allergies:<input type="text" name="patAllergies" maxlength="500" onchange="validAllergies(this,'modPatInfoError')" /></td><td>ICELastName:<input type="text" maxlength="30" name="patICELastName" onchange="validICELastName(this,'modPatInfoError')" /></td><td>ICEFirstName:<input type="text" maxlength="30" name="patICEFirstName" onchange="validICEFirstName(this,'modPatInfoError')" /></td></tr>

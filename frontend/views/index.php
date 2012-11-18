@@ -3,11 +3,11 @@
 <head>
 <title>Patient Medical Profile System</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<script src="http://code.jquery.com/jquery-latest.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <!-- Google Customized Web Fonts !-->
-<link href='http://fonts.googleapis.com/css?family=Raleway:200' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Candal' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Raleway:200' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Candal' rel='stylesheet' type='text/css'>
+
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -26,11 +26,26 @@ function afterHover(p) {
        <img id="logoPic" src="logo_pmpsc.png" onmouseover="whenHover(this)" onmouseout="afterHover(this)"/>
     </header>
 	<section id="main">
-    <form method="post" action="checkLogin.php">
-        <input type="text" class="inp" name="user" placeholder="Username" />
-		<input type="text" class="inp" name="password" placeholder="Password" />
+    <form method="post" action="auth.php">
+        <input type="text" class="inp" name="username" placeholder="Username"  />
+		<input type="password" class="inp" name="password" placeholder="Password"/>
         <input type="submit" id="login"  value="Login" >
     </form>
+    <?php
+		session_start();
+		if (!empty($_SESSION["access"])) {
+			if ($_SESSION["access"] == "readonly")
+				header( 'Location: ./home_emt.php' );
+			else if ($_SESSION["access"] == "readwrite")
+				header( 'Location: ./home_doctor.php' );
+			else if ($_SESSION["access"] == "admin")
+				header( 'Location: ./home_admin.php' );
+			else if ($_SESSION["access"] == "none") {
+				print '<p id="loginError">'.$_SESSION["errorMsg"].'</p>';
+				unset($_SESSION["errorMsg"]);
+			}
+		}
+	 ?>
 	</section>
    	<footer>
     	<p>Copyright © Team PMPS</p>

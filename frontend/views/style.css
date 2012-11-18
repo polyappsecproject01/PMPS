@@ -40,6 +40,7 @@ p, span, div, li, a, input, button {
 	width:1200px;
 	margin: auto;
 	background-image:url('back2.png');
+	background-repeat:repeat-x;
 }
 
 #userView {
@@ -53,7 +54,23 @@ p, span, div, li, a, input, button {
 	max-width: 500px;
 }
 
+#processInfo {
+	margin: auto;
+	text-align: left;
+	width: 1000px;
+	font-family:Verdana, Geneva, sans-serif;
+	color:#09C;
+	font-size:13px;
+}
 
+#logout {
+	margin: auto;
+	text-align: center;
+	max-width: 500px;
+	font-family:Verdana, Geneva, sans-serif;
+	color:#006;
+	
+}
 #retPatError {
 	font-family: 'Raleway', sans-serif;
 	color:#BE2C07;
@@ -64,6 +81,8 @@ p, span, div, li, a, input, button {
 	font-family: 'Raleway', sans-serif;
 	color:#BE2C07;
 	font-size:13px;
+	display:inline;
+	margin-left:5px;
 }
 
 #remPatError {
@@ -88,12 +107,45 @@ p, span, div, li, a, input, button {
 	margin-left:5px;
 }
 
-
+#loginError {
+	font-family: Verdana, sans-serif;
+	font-size:12px;
+	color:#BE2C07;
+	font-weight:bold;
+}
 
 .tab {
 	width:300px;
 	font-size:13px;
 	color:#3366CC;
+}
+
+#tableResults table{
+	table-layout:fixed;
+	width:1000px;
+	text-align:left;
+	border: 1px solid white;
+}
+
+#tableResults td {
+	color:#009;
+	font-size:13px;
+	text-align:left;
+	border: 1px solid white;
+}
+
+#notesResults table{
+	table-layout:fixed;
+	width:800px;
+	text-align:left;
+	border: none;
+}
+
+#notesResults td {
+	color:#009;
+	font-size:13px;
+	text-align:left;
+	border: none;
 }
 
 .inp {
@@ -155,3 +207,5 @@ footer {
 footer p, footer a {
 	color: #f7f7f7;
 }
+
+
