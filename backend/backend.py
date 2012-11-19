@@ -68,6 +68,15 @@ def LoginUser(request):
 def LogoutUser(auth_data):
     result = refmon.LogoutSession(auth_data["login_hash"])
     return {"logged_out":result["SuccessfulQuery"]}
+
+def ModifyPatientName(auth_data,request):
+    result = refmon.RemovePatient(
+                 request["lastname"],
+                 request["firstname"],
+                 request["newlastname"],
+                 request["newfirstname"],
+                 auth_data["login_hash"])
+    return {"modified":result["SuccessfulQuery"]}
     
 def RemoveProfile(auth_data,request):
     result = refmon.RemovePatient(request["lastname"],request["firstname"],auth_data["login_hash"])
@@ -115,12 +124,10 @@ while True:
     # in_stream = socket.recv()
 
     in_stream = conn.recv(1024)
-    print "Received stream..."
-
     req = json.loads(in_stream)
 
     # Debug (remove later)
-    print
+    print "Received:"
     print json.dumps(req, indent=4)
     print
 
@@ -142,13 +149,15 @@ while True:
         response = {}
 
     rep = {"method":method,"response":response}
+
+    # Debug (remove later)
+    print "Sending:"
+    print json.dumps(rep, indent=4)
+
     out_stream = json.JSONEncoder().encode(rep)
 
     #--ZMQ
     # socket.send(out_stream)
-
-    print "Sending:"
-    print json.dumps(out_stream, indent=4)
 
     conn.sendall(out_stream)
     conn.close()
