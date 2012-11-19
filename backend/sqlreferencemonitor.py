@@ -20,6 +20,7 @@ from dbinfo import *
 import datetime
 from hash_utilities import * # JV
 import MySQLdb
+import string
 
 # Initialize Database Connection
 dbinfodata = getdbinfo() # Retrive db info from local file
