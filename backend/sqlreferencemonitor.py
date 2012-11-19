@@ -113,6 +113,39 @@ def LogoutSession(LogoutThisHashValue):
 This portion of the code will validate each request made to the SQL database, ensure that it is appropriate for the user's level, retrieve the information from the SQL database, and pass it back to the frontend.
 '''
 
+# This function is a universal handler for input strings from the frontend
+# Though it may be redundant, it prevents attacks where the adversary writes
+# their own frontend and attempts to interact with the backend directly
+def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters):
+	# Initialize input status as unacceptable
+	LengthAcceptable = 0
+	CharactersAcceptable = 0
+	AcceptableCount = 0
+	# Force the input to a string type
+	CheckThisInput = str(CheckThisInput)
+	# Check the length of the string
+	InitialInputLength = len(CheckThisInput)
+	if (InitialInputLength > MaxStringLength):
+		LengthAcceptable = 0
+		# If it is too long, truncate it
+		CheckThisInput = CheckThisInput[0:MaxStringLength]
+	else:
+		LengthAcceptable = 1
+	# Check for allowable characters in the string
+	for character in CheckThisInput:
+			if (character not in (AllowedCharacters)):
+				CharactersAcceptable = 0
+				# Rather than simply raising an error, remove bad characters from the input and provide an acceptable string for use.
+				CheckThisInput = replace(CheckThisInput, character, '')
+			else:
+				AcceptableCount = AcceptableCount + 1
+	# If all the characters were acceptable, set the corresponding var
+	if (AcceptableCount == (min(InitialInputLength, MaxStringLength))):
+		CharactersAcceptable = 1
+	# If there was any problem with the input, report it.  Pass along the same or the corrected values regardless
+	ReturnDict = dict(AcceptableValue = CheckThisInput, LengthAcceptable = LengthAcceptable, CharactersAcceptable = CharactersAcceptable)
+	return (ReturnDict)
+
 def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code)
 
         # Connect to SQL DB and Retrieve Information
