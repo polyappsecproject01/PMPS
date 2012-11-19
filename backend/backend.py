@@ -70,7 +70,7 @@ def LogoutUser(auth_data):
     return {"logged_out":result["SuccessfulQuery"]}
 
 def ModifyPatientName(auth_data,request):
-    result = refmon.RemovePatient(
+    result = refmon.ModifyPatientName(
                  request["lastname"],
                  request["firstname"],
                  request["newlastname"],
@@ -97,7 +97,6 @@ def UpdateProfile(auth_data,request):
                  request["notes"],
                  auth_data["login_hash"])
 
-    result = refmon.ModifyPatientInfo(profile)
     return {"updated":result["SuccessfulQuery"]}
 
 # Main
@@ -141,6 +140,8 @@ while True:
         response = LoginUser(req["request"])
     elif method == "logout":
         response = LogoutUser(req["auth_data"])
+    elif method == "modifypatientname":
+        response = ModifyPatientName(req["auth_data"],req["request"])
     elif method == "removeprofile":
         response = RemoveProfile(req["auth_data"],req["request"])
     elif method == "updateprofile":
