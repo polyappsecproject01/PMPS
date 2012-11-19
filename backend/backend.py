@@ -126,16 +126,20 @@ while True:
 
     method = req["method"]
 
-    if method == "getprofile":
+    if method == "createprofile":
+        response = CreateProfile(req["auth_data"],req["request"])
+    elif method == "getprofile":
         response = GetProfile(req["auth_data"],req["request"])
-    elif method == "removeprofile":
-        response = RemoveProfile(req["auth_data"],req["request"])
-    elif method == "updateprofile":
-        response = UpdateProfile(req["auth_data"],req["request"])
     elif method == "login":
         response = LoginUser(req["request"])
     elif method == "logout":
         response = LogoutUser(req["auth_data"])
+    elif method == "removeprofile":
+        response = RemoveProfile(req["auth_data"],req["request"])
+    elif method == "updateprofile":
+        response = UpdateProfile(req["auth_data"],req["request"])
+    else:
+        response = {}
 
     rep = {"method":method,"response":response}
     out_stream = json.JSONEncoder().encode(rep)
