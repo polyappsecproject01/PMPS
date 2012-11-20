@@ -23,7 +23,7 @@ import MySQLdb
 import string
 
 # Initialize Database Connection
-dbinfodata = getdbinfo() # Retrive db info from local file
+dbinfodata = getdbinfo() # Retrieve db info from local file
 PMPSDatabase = MySQLdb.connect(user=dbinfodata[0], passwd=dbinfodata[1], db=dbinfodata[2])
 
 # Initialize Logs
@@ -117,6 +117,21 @@ This portion of the code will validate each request made to the SQL database, en
 # This function is a universal handler for input strings from the frontend
 # Though it may be redundant, it prevents attacks where the adversary writes
 # their own frontend and attempts to interact with the backend directly
+# Note:  The Python SQL API escapes all %s, (var) when in this format, 
+# so injection is protected against.
+
+# Valid Inputs
+        # UserName = 15 alphanum
+        # Password = 30 char
+        # Patient*Name = 30 alpha
+        # LoginHash = 64 hex
+        # PatientBloodType = O+, O-, A+, A-, B+, B-, AB+, AB-
+        # PatientAllergies = 500 char
+        # *Phone= 16 int
+        # PatientNotes = 5000 char
+        # NewAccessLevel = readonly, readwrite, admin
+
+
 def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters):
 	# Initialize input status as unacceptable
 	LengthAcceptable = 0
@@ -136,8 +151,9 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters):
 	for character in CheckThisInput:
 			if (character not in (AllowedCharacters)):
 				CharactersAcceptable = 0
-				# Rather than simply raising an error, remove bad characters from the input and provide an acceptable string for use.
-				CheckThisInput = replace(CheckThisInput, character, '')
+				# Rather than simply raising an error, remove all bad characters from the 
+				# input and provide an acceptable string for use.
+				CheckThisInput = string.replace(CheckThisInput, character, '')
 			else:
 				AcceptableCount = AcceptableCount + 1
 	# If all the characters were acceptable, set the corresponding var
@@ -147,8 +163,15 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters):
 	ReturnDict = dict(AcceptableValue = CheckThisInput, LengthAcceptable = LengthAcceptable, CharactersAcceptable = CharactersAcceptable)
 	return (ReturnDict)
 
-def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code)
+def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code, added validation)
 
+	# Validate Inputs
+	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits))
+	UserName = ValidatedUserName['AcceptableValue']
+
+	ValidatedPassword = ValidateInput(Password, 30, (string.ascii_letters + string.digits + string.punctuation)) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
+	Password = ValidatedPassword['AcceptableValue']
+	
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
         DBPosition.execute("""SELECT password_salt, password_hash, accesslevel FROM users WHERE username = %s""", (UserName))
@@ -209,6 +232,16 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 
+	# Validate Inputs
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
+	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
+	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# All valid user levels may use this function	
 	PermissionsOKList = ValidUserLevels 
@@ -239,7 +272,17 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 	return(ReturnDict)
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
-	
+		
+	# Validate Inputs
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
+	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
+	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Doctors and Admins)	
 	PermissionsOKList = ValidUserLevels[1:]
@@ -268,6 +311,16 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 	return(ReturnDict)
 
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
+
+	# Validate Inputs
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
+	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
+	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
@@ -298,6 +351,22 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
 	
+	# Validate Inputs
+	ValidatedPatientLastNameCurrent = ValidateInput(PatientLastNameCurrent, 30, (string.ascii_letters))
+	PatientLastNameCurrent = ValidatedPatientLastNameCurrent['AcceptableValue']
+
+	ValidatedPatientFirstNameCurrent = ValidateInput(PatientFirstNameCurrent, 30, (string.ascii_letters))
+	PatientFirstNameCurrent = ValidatedPatientFirstNameCurrent['AcceptableValue']
+
+	ValidatedPatientLastNameNew = ValidateInput(PatientLastNameNew, 30, (string.ascii_letters))
+	PatientLastNameNew = ValidatedPatientLastNameNew['AcceptableValue']
+
+	ValidatedPatientFirstNameNew = ValidateInput(PatientFirstNameNew, 30, (string.ascii_letters))
+	PatientFirstNameNew = ValidatedPatientFirstNameNew['AcceptableValue']
+
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
