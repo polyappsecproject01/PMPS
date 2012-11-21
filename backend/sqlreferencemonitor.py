@@ -473,12 +473,12 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	return(ReturnDict)
 
 def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
-	
+
 	# Validate Inputs
 	ValidatedNewUserName = ValidateInput(NewUserName, 15, (string.ascii_letters + string.digits))
 	NewUserName = ValidatedNewUserName['AcceptableValue']
 
-	ValidatedNewUserAccessLevel = ValidateInput(NewUserAccessLevel, 9, ValidUserLevels)
+	ValidatedNewUserAccessLevel = ValidateInput(NewUserAccessLevel, 9, string.ascii_letters)
 	NewUserAccessLevel = ValidatedNewUserAccessLevel['AcceptableValue']
 	
 	ValidatedNewUserPass = ValidateInput(NewUserPass, 30, (string.ascii_letters + string.digits + string.punctuation)) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
@@ -486,7 +486,7 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 	
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
 	LoginHash = ValidatedLoginHash['AcceptableValue']
-	
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
