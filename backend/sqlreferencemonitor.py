@@ -395,6 +395,46 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 	return(ReturnDict)
 
 def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
+
+	# Validate Inputs
+	
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
+	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
+	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+
+	ValidBloodTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+	ValidatedPatientBloodType = ValidateInput(PatientBloodType, 3, ValidBloodTypes)
+	PatientBloodType = ValidatedPatientBloodType['AcceptableValue']
+	
+	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.punctuation))
+	PatientAllergies = ValidatedPatientAllergies['AcceptableValue']
+
+	ValidatedPatientICELastName = ValidateInput(PatientICELastName, 30, (string.ascii_letters))
+	PatientICELastName = ValidatedPatientICELastName['AcceptableValue']
+
+	ValidatedPatientICEFirstName = ValidateInput(PatientICEFirstName, 30, (string.ascii_letters))
+	PatientICEFirstName = ValidatedPatientICEFirstName['AcceptableValue']
+
+	ValidatedPatientICEPhone = ValidateInput(PatientICEPhone, 16, (string.digits))
+	PatientICEPhone = ValidatedPatientICEPhone['AcceptableValue']
+
+	ValidatedPatientPCPLastName = ValidateInput(PatientPCPLastName, 30, (string.ascii_letters))
+	PatientPCPLastName = ValidatedPatientPCPLastName['AcceptableValue']
+
+	ValidatedPatientPCPFirstName = ValidateInput(PatientPCPFirstName, 30, (string.ascii_letters))
+	PatientPCPFirstName = ValidatedPatientPCPFirstName['AcceptableValue']
+
+	ValidatedPatientPCPPhone = ValidateInput(PatientPCPPhone, 16, (string.digits))
+	PatientPCPPhone = ValidatedPatientPCPPhone['AcceptableValue']
+	
+	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.punctuation))
+	PatientNotes = ValidatedPatientNotes['AcceptableValue']
+	
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Admins and Doctors only)	
 	PermissionsOKList = ValidUserLevels[1:]
@@ -423,6 +463,20 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	return(ReturnDict)
 
 def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
+	
+	# Validate Inputs
+	ValidatedNewUserName = ValidateInput(NewUserName, 15, (string.ascii_letters + string.digits))
+	NewUserName = ValidatedNewUserName['AcceptableValue']
+
+	ValidatedNewUserAccessLevel = ValidateInput(NewUserAccessLevel, 9, ValidUserLevels)
+	NewUserAccessLevel = ValidatedNewUserAccessLevel['AcceptableValue']
+	
+	ValidatedNewUserPass = ValidateInput(NewUserPass, 30, (string.ascii_letters + string.digits + string.punctuation)) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
+	NewUserPass = ValidatedNewUserPass['AcceptableValue']
+	
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
@@ -479,6 +533,14 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 	return(ReturnDict)	
 
 def RemoveUser(UserName, LoginHash):
+	
+	# Validate Inputs
+	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits))
+	UserName = ValidateUserName['AcceptableValue']
+	
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
+	LoginHash = ValidatedLoginHash['AcceptableValue']
+	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
