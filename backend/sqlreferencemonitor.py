@@ -296,16 +296,21 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
 		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Add New Patient
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+			# Ensure the patient name does not already exist 
+			DBPosition = PMPSDatabase.cursor()
+			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+			DuplicateUsers = DBPosition.fetchone()
+			if (DuplicateUsers == None):
+				# Connect to the SQL DB and Add New Patient
+				DBPosition = PMPSDatabase.cursor() 
+				DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
+				# Keep track of query in the activity log
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
 		ReturnDict = dict(Message = 'Failed to add new patient information!', SuccessfulQuery = 0)
 	return(ReturnDict)
@@ -380,16 +385,21 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
 		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Modify Patient Name
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+			# Ensure the patient name does not already exist 
+			DBPosition = PMPSDatabase.cursor()
+			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew))
+			DuplicateUsers = DBPosition.fetchone()
+			if (DuplicateUsers == None):
+				# Connect to the SQL DB and Modify Patient Name
+				DBPosition = PMPSDatabase.cursor() 
+				DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
+				# Keep track of query in the activity log
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
 		ReturnDict = dict(Message = 'Failed to modify patient name!', SuccessfulQuery = 0)
 	return(ReturnDict)
