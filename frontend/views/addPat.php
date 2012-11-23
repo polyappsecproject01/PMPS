@@ -52,7 +52,7 @@ function afterHover(p) {
 						$PCPArr = array('firstname' => $patPCPFirstName , 'lastname' => $patPCPLastName , 'phone' => $patPCPPhone );
 						$requestArr = array('firstname' => $patFirstName, 'lastname' => $patLastName, 'bloodtype' => $patBloodType, 'allergies' => $patAllergies, 'ICEcontact' => $ICEArr, 'PCP' => $PCPArr, 'notes' => $patNotes  );
 						$arr = array('method' => 'createprofile', 'auth_data' => $auth_dataArr,'request' => $requestArr );
-						$requestJSON = json_encode($arr);		
+						$requestJSON = json_encode($arr);	
 						$responseJSON = sendJSONgetJSON($requestJSON);
 						$responseArr = json_decode($responseJSON,true);	
 						$method = $responseArr["method"];

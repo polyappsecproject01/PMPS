@@ -42,11 +42,10 @@ function afterHover(p) {
 						$auth_dataArr = array('username' => $_SESSION["username"], 'ip_address' => $_SERVER['REMOTE_ADDR'], 'login_hash' => $_SESSION["loginHash"]);
 						$requestArr = array('firstname' => $patFirstNameCurrent, 'lastname' => $patLastNameCurrent, 'newfirstname' => $patFirstNameNew, 'newlastname' => $patLastNameNew );
 						$arr = array('method' => 'modifypatientname', 'auth_data' => $auth_dataArr,'request' => $requestArr );
-						$requestJSON = json_encode($arr);		
+						$requestJSON = json_encode($arr);
 						$responseJSON = sendJSONgetJSON($requestJSON);
 						$responseArr = json_decode($responseJSON,true);	
 						$method = $responseArr["method"];
-						print $method;
 						$authNum = $responseArr["response"]["modified"];
 						
 						if ($method == "modifypatientname")  {

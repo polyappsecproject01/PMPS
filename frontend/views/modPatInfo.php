@@ -56,14 +56,13 @@ function afterHover(p) {
 						$responseJSON = sendJSONgetJSON($requestJSON);
 						$responseArr = json_decode($responseJSON,true);	
 						$method = $responseArr["method"];
-						print $method;
 						$authNum = $responseArr["response"]["updated"];
 						
 						if ($method == "updateprofile")  {
 							if ($authNum === 1) {
 								print ("<i>$patFirstName $patLastName</i> profile is now updated with new data.");
 							} else if ($authNum === 0)
-								print ("Error: Could not update <i>$patFirstName $patLastName</i> records in the system.");
+								print ("Error: Could not update the profile of <i>$patFirstName $patLastName</i>. Please check if patient profile exists.");
 						} else print("Error: JSON Response");
 					} else print "Please enter valid info in all fields.";
 			  }

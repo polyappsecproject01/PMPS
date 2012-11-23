@@ -50,7 +50,7 @@ function afterHover(p) {
 						
 						if ($method == "removeprofile")  {
 							if ($authNum === 1) {
-								print ("<i>$patFirstName $patLastName</i> was successfuly removoed from the system.");
+								print ("<i>$patFirstName $patLastName</i> was successfuly removed from the system.");
 							} else if ($authNum === 0)
 								print ("Error: Could not remove <i>$patFirstName $patLastName</i> from the system.");
 						} else print("Error: JSON Response");
