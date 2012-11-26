@@ -132,35 +132,41 @@ This portion of the code will validate each request made to the SQL database, en
         # NewAccessLevel = readonly, readwrite, admin
 
 
-def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters):
+def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters, FixInputAutomatically):
 	# Initialize input status as unacceptable
-	LengthAcceptable = 0
-	CharactersAcceptable = 0
-	AcceptableCount = 0
-	# Force the input to a string type
+	InputAcceptable = 0
+
+	# Ensure an acceptable type has been passed to the function.  This cannot be automatically corrected.
+	if (type(CheckThisInput) not in [int, str]):
+		ReturnDict = dict(InputAcceptable = 0)
+		return (ReturnDict)
+	
+	# Convert an int input to a string type
 	CheckThisInput = str(CheckThisInput)
+
 	# Check the length of the string
 	InitialInputLength = len(CheckThisInput)
 	if (InitialInputLength > MaxStringLength):
-		LengthAcceptable = 0
-		# If it is too long, truncate it
-		CheckThisInput = CheckThisInput[0:MaxStringLength]
-	else:
-		LengthAcceptable = 1
-	# Check for allowable characters in the string
+		if (FixInputAutomatically == 1): 
+			# If it is too long, and the input is set to be automatically corrected, truncate it
+			CheckThisInput = CheckThisInput[0:MaxStringLength]
+		else: # If the input shouldn't be autocorrected
+			ReturnDict = dict(InputAcceptable = 0)
+			return (ReturnDict)
+	
+	# If the length is ok or corrected, check for allowable characters in the string
 	for character in CheckThisInput:
-			if (character not in (AllowedCharacters)):
-				CharactersAcceptable = 0
+		if (character not in (AllowedCharacters)):
+			if (FixInputAutomatically == 1):
 				# Rather than simply raising an error, remove all bad characters from the 
 				# input and provide an acceptable string for use.
 				CheckThisInput = string.replace(CheckThisInput, character, '')
-			else:
-				AcceptableCount = AcceptableCount + 1
-	# If all the characters were acceptable, set the corresponding var
-	if (AcceptableCount == (min(InitialInputLength, MaxStringLength))):
-		CharactersAcceptable = 1
-	# If there was any problem with the input, report it.  Pass along the same or the corrected values regardless
-	ReturnDict = dict(AcceptableValue = CheckThisInput, LengthAcceptable = LengthAcceptable, CharactersAcceptable = CharactersAcceptable)
+			else: # If the input shouldn't be autocorrected
+				ReturnDict = dict(InputAcceptable = 0)
+				return (ReturnDict)		
+
+	# Either the input was initially ok, or it was corrected to be acceptable and can be returned
+	ReturnDict = dict(AcceptableValue = CheckThisInput, InputAcceptable = 1)
 	return (ReturnDict)
 
 def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code, added validation)
@@ -418,7 +424,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	ValidatedPatientBloodType = ValidateInput(PatientBloodType, 3, ValidBloodTypes)
 	PatientBloodType = ValidatedPatientBloodType['AcceptableValue']
 	
-	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.punctuation))
+	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.punctuation + string.whitespace))
 	PatientAllergies = ValidatedPatientAllergies['AcceptableValue']
 
 	ValidatedPatientICELastName = ValidateInput(PatientICELastName, 30, (string.ascii_letters))
@@ -439,7 +445,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 	ValidatedPatientPCPPhone = ValidateInput(PatientPCPPhone, 16, (string.digits))
 	PatientPCPPhone = ValidatedPatientPCPPhone['AcceptableValue']
 	
-	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.punctuation))
+	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.punctuation + string.whitespace))
 	PatientNotes = ValidatedPatientNotes['AcceptableValue']
 	
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
@@ -546,7 +552,7 @@ def RemoveUser(UserName, LoginHash):
 	
 	# Validate Inputs
 	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits))
-	UserName = ValidateUserName['AcceptableValue']
+	UserName = ValidatedUserName['AcceptableValue']
 	
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
 	LoginHash = ValidatedLoginHash['AcceptableValue']
