@@ -474,9 +474,9 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient First Name entered with invalid characters','\n'
                 return (ReturnDict)
 
-	ValidBloodTypes = ['ABO+-']
+	ValidBloodTypes = 'ABO+-'
 	ValidatedPatientBloodType = ValidateInput(PatientBloodType, 3, ValidBloodTypes, 0)
-	if ((ValidatedPatientBloodType['InputAcceptable'] == 0) OR (PatientBloodType not in ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']):
+	if ((ValidatedPatientBloodType['InputAcceptable'] == 0) or (PatientBloodType not in ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'])):
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Bloodtype entered with invalid characters','\n'
                 return (ReturnDict)
