@@ -137,7 +137,7 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters, FixInputAu
 	InputAcceptable = 0
 
 	# Ensure an acceptable type has been passed to the function.  This cannot be automatically corrected.
-	if (type(CheckThisInput) not in [int, str]):
+	if (CheckThisInput.encode('ascii', 'ignore') <> CheckThisInput):
 		ReturnDict = dict(InputAcceptable = 0)
 		return (ReturnDict)
 	
