@@ -172,11 +172,17 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters, FixInputAu
 def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until frontend can reliably generate this, added timestamp refresh on successful login, added logging, added lockout code, added validation)
 
 	# Validate Inputs
-	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits))
-	UserName = ValidatedUserName['AcceptableValue']
+	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits), 0)
+	if ValidatedUserName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: User Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPassword = ValidateInput(Password, 30, (string.ascii_letters + string.digits + string.punctuation)) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
-	Password = ValidatedPassword['AcceptableValue']
+	ValidatedPassword = ValidateInput(Password, 30, (string.ascii_letters + string.digits + string.punctuation), 0) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
+	if ValidatedPassword['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Password entered with invalid characters','\n'
+                return (ReturnDict)
 	
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
@@ -239,14 +245,23 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 
 	# Validate Inputs
-	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
-	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
-	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# All valid user levels may use this function	
@@ -280,14 +295,23 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 		
 	# Validate Inputs
-	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
-	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatientInfo Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
-	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatientInfo Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatientInfo Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Doctors and Admins)	
@@ -324,14 +348,23 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 
 	# Validate Inputs
-	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
-	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
-	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstName['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
@@ -363,20 +396,35 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
 	
 	# Validate Inputs
-	ValidatedPatientLastNameCurrent = ValidateInput(PatientLastNameCurrent, 30, (string.ascii_letters))
-	PatientLastNameCurrent = ValidatedPatientLastNameCurrent['AcceptableValue']
+	ValidatedPatientLastNameCurrent = ValidateInput(PatientLastNameCurrent, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastNameCurrent['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
+	
+	ValidatedPatientFirstNameCurrent = ValidateInput(PatientFirstNameCurrent, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstNameCurrent['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstNameCurrent = ValidateInput(PatientFirstNameCurrent, 30, (string.ascii_letters))
-	PatientFirstNameCurrent = ValidatedPatientFirstNameCurrent['AcceptableValue']
+	ValidatedPatientLastNameNew = ValidateInput(PatientLastNameNew, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastNameNew['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientLastNameNew = ValidateInput(PatientLastNameNew, 30, (string.ascii_letters))
-	PatientLastNameNew = ValidatedPatientLastNameNew['AcceptableValue']
+	ValidatedPatientFirstNameNew = ValidateInput(PatientFirstNameNew, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstNameNew['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstNameNew = ValidateInput(PatientFirstNameNew, 30, (string.ascii_letters))
-	PatientFirstNameNew = ValidatedPatientFirstNameNew['AcceptableValue']
-
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
@@ -414,42 +462,82 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 
 	# Validate Inputs
 	
-	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters))
-	PatientLastName = ValidatedPatientLastName['AcceptableValue']
+	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientLastName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Last Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters))
-	PatientFirstName = ValidatedPatientFirstName['AcceptableValue']
+	ValidatedPatientFirstName = ValidateInput(PatientFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientFirstName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient First Name entered with invalid characters','\n'
+                return (ReturnDict)
 
 	ValidBloodTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
-	ValidatedPatientBloodType = ValidateInput(PatientBloodType, 3, ValidBloodTypes)
-	PatientBloodType = ValidatedPatientBloodType['AcceptableValue']
+	ValidatedPatientBloodType = ValidateInput(PatientBloodType, 3, ValidBloodTypes, 0)
+	if ValidatedPatientBloodType['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Bloodtype entered with invalid characters','\n'
+                return (ReturnDict)
 	
-	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.punctuation + string.whitespace))
+	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.whitespace), 1)
+	if ValidatedPatientAllergies['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Allergies entered with invalid characters','\n'
+                return (ReturnDict)
 	PatientAllergies = ValidatedPatientAllergies['AcceptableValue']
 
-	ValidatedPatientICELastName = ValidateInput(PatientICELastName, 30, (string.ascii_letters))
-	PatientICELastName = ValidatedPatientICELastName['AcceptableValue']
+	ValidatedPatientICELastName = ValidateInput(PatientICELastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientICELastName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient ICE Last Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientICEFirstName = ValidateInput(PatientICEFirstName, 30, (string.ascii_letters))
-	PatientICEFirstName = ValidatedPatientICEFirstName['AcceptableValue']
+	ValidatedPatientICEFirstName = ValidateInput(PatientICEFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientICEFirstName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient ICE First Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientICEPhone = ValidateInput(PatientICEPhone, 16, (string.digits))
+	ValidatedPatientICEPhone = ValidateInput(PatientICEPhone, 16, (string.digits), 1)
+	if ValidatedPatientICEPhone['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient ICE Phone entered with invalid characters','\n'
+                return (ReturnDict)
 	PatientICEPhone = ValidatedPatientICEPhone['AcceptableValue']
 
-	ValidatedPatientPCPLastName = ValidateInput(PatientPCPLastName, 30, (string.ascii_letters))
-	PatientPCPLastName = ValidatedPatientPCPLastName['AcceptableValue']
+	ValidatedPatientPCPLastName = ValidateInput(PatientPCPLastName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientPCPLastName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient PCP Last Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientPCPFirstName = ValidateInput(PatientPCPFirstName, 30, (string.ascii_letters))
-	PatientPCPFirstName = ValidatedPatientPCPFirstName['AcceptableValue']
+	ValidatedPatientPCPFirstName = ValidateInput(PatientPCPFirstName, 30, (string.ascii_letters), 0)
+	if ValidatedPatientPCPFirstName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient PCP First Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedPatientPCPPhone = ValidateInput(PatientPCPPhone, 16, (string.digits))
+	ValidatedPatientPCPPhone = ValidateInput(PatientPCPPhone, 16, (string.digits), 1)
+	if ValidatedPatientPCPPhone['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient PCP Phone entered with invalid characters','\n'
+                return (ReturnDict)
 	PatientPCPPhone = ValidatedPatientPCPPhone['AcceptableValue']
 	
-	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.punctuation + string.whitespace))
+	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.whitespace), 1)
+	if ValidatedPatientNotes['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Notes entered with invalid characters','\n'
+                return (ReturnDict)
 	PatientNotes = ValidatedPatientNotes['AcceptableValue']
 	
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Admins and Doctors only)	
@@ -481,17 +569,29 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 
 	# Validate Inputs
-	ValidatedNewUserName = ValidateInput(NewUserName, 15, (string.ascii_letters + string.digits))
-	NewUserName = ValidatedNewUserName['AcceptableValue']
+	ValidatedNewUserName = ValidateInput(NewUserName, 15, (string.ascii_letters + string.digits), 0)
+	if ValidatedNewUserName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: New User Name entered with invalid characters','\n'
+                return (ReturnDict)
 
-	ValidatedNewUserAccessLevel = ValidateInput(NewUserAccessLevel, 9, string.ascii_letters)
-	NewUserAccessLevel = ValidatedNewUserAccessLevel['AcceptableValue']
+	ValidatedNewUserAccessLevel = ValidateInput(NewUserAccessLevel, 9, string.ascii_letters, 0)
+	if ValidatedNewUserAccessLevel['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: New User Access Level entered with invalid characters','\n'
+                return (ReturnDict)
 	
-	ValidatedNewUserPass = ValidateInput(NewUserPass, 30, (string.ascii_letters + string.digits + string.punctuation)) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
-	NewUserPass = ValidatedNewUserPass['AcceptableValue']
+	ValidatedNewUserPass = ValidateInput(NewUserPass, 30, (string.ascii_letters + string.digits + string.punctuation), 0) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
+	if ValidatedNewUserPass['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: New User Password entered with invalid characters','\n'
+                return (ReturnDict)
 	
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
@@ -551,11 +651,17 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 def RemoveUser(UserName, LoginHash):
 	
 	# Validate Inputs
-	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits))
-	UserName = ValidatedUserName['AcceptableValue']
+	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits), 0)
+	if ValidatedNewUserName['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: User Name entered with invalid characters','\n'
+                return (ReturnDict)
 	
-	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits))
-	LoginHash = ValidatedLoginHash['AcceptableValue']
+	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
+	if ValidatedLoginHash['InputAcceptable'] == 0:
+                ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
+		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemoveUser Failed: Login Hash contains invalid characters','\n'
+                return (ReturnDict)
 	
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
