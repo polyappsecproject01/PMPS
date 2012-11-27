@@ -1,3 +1,5 @@
+from binascii import unhexlify as unhex
+from pyDes import *
 import json
 import os
 import socket
@@ -5,11 +7,11 @@ import sqlreferencemonitor as refmon
 import time
 # import zmq
 
-def AddNewUser(auth_data,request):
+def AddNewUser (auth_data,request):
     result = refmon.AddNewUser(request["username"],request["accesslevel"],request["password"],auth_data["login_hash"])
     return {"added":result["SuccessfulQuery"]}
 
-def CreateProfile(auth_data,request):
+def CreateProfile (auth_data,request):
     result = refmon.AddNewPatient(request["lastname"],request["firstname"],auth_data["login_hash"])
 
     if result["SuccessfulQuery"]:
@@ -29,7 +31,7 @@ def CreateProfile(auth_data,request):
 
     return {"created":result["SuccessfulQuery"]}
 
-def GetProfile(auth_data,request):
+def GetProfile (auth_data,request):
     profile = refmon.RetrievePatientInfo(request["lastname"],request["firstname"],auth_data["login_hash"])
 
     if profile["SuccessfulQuery"]:
@@ -53,7 +55,7 @@ def GetProfile(auth_data,request):
 
     return result
 
-def LoginUser(request):
+def LoginUser (request):
     result = refmon.AuthenticateUser(request["username"],request["password"])
 
     if result["SuccessfulQuery"]:
@@ -65,11 +67,11 @@ def LoginUser(request):
 
     return {"authenticated":result["SuccessfulQuery"],"login_hash":login_hash,"accesslevel":accesslevel}
 
-def LogoutUser(auth_data):
+def LogoutUser (auth_data):
     result = refmon.LogoutSession(auth_data["login_hash"])
     return {"logged_out":result["SuccessfulQuery"]}
 
-def ModifyPatientName(auth_data,request):
+def ModifyPatientName (auth_data,request):
     result = refmon.ModifyPatientName(
                  request["lastname"],
                  request["firstname"],
@@ -78,11 +80,11 @@ def ModifyPatientName(auth_data,request):
                  auth_data["login_hash"])
     return {"modified":result["SuccessfulQuery"]}
     
-def RemoveProfile(auth_data,request):
+def RemoveProfile (auth_data,request):
     result = refmon.RemovePatient(request["lastname"],request["firstname"],auth_data["login_hash"])
     return {"removed":result["SuccessfulQuery"]}
 
-def UpdateProfile(auth_data,request):
+def UpdateProfile (auth_data,request):
     result = refmon.ModifyPatientInfo(
                  request["lastname"],
                  request["firstname"],
@@ -98,6 +100,14 @@ def UpdateProfile(auth_data,request):
                  auth_data["login_hash"])
 
     return {"updated":result["SuccessfulQuery"]}
+
+def TDES_Decrypt (the_stream):
+    tdes = triple_des(unhex("------------------------------------------------"))
+    return tdes.decrypt(the_stream,padmode=PAD_PKCS5)
+
+def TDES_Encrypt (the_stream):
+    tdes = triple_des(unhex("------------------------------------------------"))
+    return tdes.encrypt(the_stream,padmode=PAD_PKCS5)
 
 # Main
 
@@ -123,9 +133,14 @@ while True:
     # in_stream = socket.recv()
 
     in_stream = conn.recv(1024)
-    req = json.loads(in_stream)
 
-    # Debug (remove later)
+    #--3DES: When frontend is ready, remove the TDES_Encrypt line below.
+    in_stream = TDES_Encrypt(in_stream)
+
+    decrypted_instream = TDES_Decrypt(in_stream)
+    req = json.loads(decrypted_instream)
+
+    #--DEBUG: Remove later.
     print "Received:"
     print json.dumps(req, indent=4)
     print
@@ -151,14 +166,19 @@ while True:
 
     rep = {"method":method,"response":response}
 
-    # Debug (remove later)
+    #--DEBUG: Remove later.
     print "Sending:"
     print json.dumps(rep, indent=4)
 
     out_stream = json.JSONEncoder().encode(rep)
 
+    encrypted_outstream = TDES_Encrypt(out_stream)
+
+    #--3DES: When frontend is ready, remove the TDES_Decrypt line below.
+    encrypted_outstream = TDES_Decrypt(encrypted_outstream)
+
     #--ZMQ
     # socket.send(out_stream)
 
-    conn.sendall(out_stream)
+    conn.sendall(encrypted_outstream)
     conn.close()
