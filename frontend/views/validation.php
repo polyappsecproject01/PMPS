@@ -1,4 +1,17 @@
 <?php
+
+	// Generate key and convert it to 24 bytes characters to be used in encryption & decryption (private-key shared encyption)
+	function hexToChar($hex) {
+	   $rv = '';
+	   foreach(str_split($hex, 2) as $b) {
+			   $rv .= chr(hexdec($b));
+	   }
+	   return $rv;
+	}	
+
+	$keyaschii = "014ef7bc441754e45e3a53496a4028469a166a11172ff6c6"; // key can be up to 24 hex chars = 96 bit
+	$ks = hexToChar($keyaschii);
+	
 	// Clean data to protect against Injection Attacks
 	function cleanData($string) {
 		if(get_magic_quotes_gpc())  // prevents duplicate backslashes
