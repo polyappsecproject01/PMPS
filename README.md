@@ -3,7 +3,7 @@ PMPS
 
 Patient Medical Profile System
 
-Non-technical project information can be find under Project_Documents folder and on our GitHub's Wiki.
+Note: Non-technical project information can be find under Project_Documents folder and on our GitHub's Wiki.
 
 --------------------------------------------------------------
 Useful Configuration and Administration Information (Linux VM)
