@@ -38,7 +38,7 @@ PMPS backend → /var/backend/
 
 Application Daemons and Related Running Instructions:
 
-Apache, MySQL Server, and Backend
+Apache
 
 The Apache webserver is automatically run upon startup. To restart, type:
 sudo service httpd restart
@@ -47,8 +47,10 @@ MySQL
 
 The MySQL database server is automatically run upon startup. To restart, type:
 sudo /etc/init.d/mysqld restart
+
 PMPS Backend
 
+Backend
 The PMPS backend program currently does not run upon startup. To start, type:
 sudo nohup /var/backend/start_pmps
 
