@@ -46,6 +46,8 @@ function afterHover(p) {
 			}
 		}
 	 ?>
+     <br />
+     <p><a style="font-size:12px; color:#93A9F7; font-weight:bold;" href="https://github.com/polyappsecproject01/PMPS/blob/master/Project_Documentation/BugTracker-PMPS.pdf"/>Latest Bug Tracker Update</a></p>
 	</section>
    	<footer>
     	<p>Copyright © Team PMPS</p>
