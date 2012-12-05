@@ -1,6 +1,7 @@
 <?php
 
-	// Generate key and convert it to 24 bytes characters to be used in encryption & decryption (private-key shared encyption)
+	// Generate key and convert it to 24 bytes characters to be used for TCP internal communication encryption & decryption between
+	// Front-End and Back-End (private-key shared encyption)
 	function hexToChar($hex) {
 	   $rv = '';
 	   foreach(str_split($hex, 2) as $b) {
@@ -8,7 +9,6 @@
 	   }
 	   return $rv;
 	}	
-
 	$keyaschii = "014ef7bc441754e45e3a53496a4028469a166a11172ff6c6"; // key can be up to 24 hex chars = 96 bit
 	$ks = hexToChar($keyaschii);
 	
