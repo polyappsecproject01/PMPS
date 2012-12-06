@@ -40,8 +40,7 @@ sudo service httpd restart
 The MySQL database server is automatically run upon startup. To restart, type:  
 sudo /etc/init.d/mysqld restart
    
-PHPMyAdmin: https://pmps.poly.edu/phpmyadmin
-DB password will be given individually by email if needed.
+PHPMyAdmin: https://pmps.poly.edu/phpmyadmin (DB password will be given individually by email if needed)
 
 ### PMPS Backend
 The PMPS backend program currently does not run upon startup. To start, type:  
