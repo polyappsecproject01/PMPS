@@ -131,7 +131,11 @@ while True:
     conn.settimeout(previous_timeout)
 
     decrypted_instream = TDES_Decrypt(in_stream)
-    req = json.loads(decrypted_instream)
+
+    try:
+        req = json.loads(decrypted_instream)
+    except ValueError:
+        req = {"method":"error"}
 
     #--DEBUG
     print "Received:"
