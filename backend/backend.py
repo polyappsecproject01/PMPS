@@ -1,4 +1,5 @@
 from binascii import unhexlify as unhex
+from config import shared_key
 from pyDes import *
 import json
 import os
@@ -102,19 +103,14 @@ def UpdateProfile (auth_data,request):
     return {"updated":result["SuccessfulQuery"]}
 
 def TDES_Decrypt (the_stream):
-    tdes = triple_des(unhex("------------------------------------------------"))
-    return tdes.decrypt(the_stream,padmode=PAD_PKCS5)
+    tdes = triple_des(unhex(shared_key))
+    return tdes.decrypt(the_stream,pad="\0")
 
 def TDES_Encrypt (the_stream):
-    tdes = triple_des(unhex("------------------------------------------------"))
-    return tdes.encrypt(the_stream,padmode=PAD_PKCS5)
+    tdes = triple_des(unhex(shared_key))
+    return tdes.encrypt(the_stream,pad="\0")
 
 # Main
-
-#--ZMQ
-# context = zmq.Context()
-# socket = context.socket(zmq.REP)
-# socket.bind("tcp://*:1390")
 
 HOST = ''
 PORT = 1390
@@ -129,18 +125,15 @@ while True:
     conn, addr = s.accept()
     print 'Connected by', addr
 
-    #--ZMQ
-    # in_stream = socket.recv()
-
+    previous_timeout = conn.gettimeout()
+    conn.settimeout(5.0)
     in_stream = conn.recv(1024)
-
-    #--3DES: When frontend is ready, remove the TDES_Encrypt line below.
-    in_stream = TDES_Encrypt(in_stream)
+    conn.settimeout(previous_timeout)
 
     decrypted_instream = TDES_Decrypt(in_stream)
     req = json.loads(decrypted_instream)
 
-    #--DEBUG: Remove later.
+    #--DEBUG
     print "Received:"
     print json.dumps(req, indent=4)
     print
@@ -166,19 +159,13 @@ while True:
 
     rep = {"method":method,"response":response}
 
-    #--DEBUG: Remove later.
+    #--DEBUG
     print "Sending:"
     print json.dumps(rep, indent=4)
 
     out_stream = json.JSONEncoder().encode(rep)
 
     encrypted_outstream = TDES_Encrypt(out_stream)
-
-    #--3DES: When frontend is ready, remove the TDES_Decrypt line below.
-    encrypted_outstream = TDES_Decrypt(encrypted_outstream)
-
-    #--ZMQ
-    # socket.send(out_stream)
 
     conn.sendall(encrypted_outstream)
     conn.close()
