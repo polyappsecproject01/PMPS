@@ -460,6 +460,11 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 
 def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
 
+	ReturnDict = RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash)
+	if not ReturnDict['SuccessfulQuery']:
+                print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient not found','\n'
+                return (ReturnDict)
+
 	# Validate Inputs
 	
 	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
