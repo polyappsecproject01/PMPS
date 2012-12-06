@@ -347,6 +347,11 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 
+	ReturnDict = RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash)
+	if not ReturnDict['SuccessfulQuery']:
+                print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient Failed: Patient not found','\n'
+                return (ReturnDict)
+
 	# Validate Inputs
 	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
 	if ValidatedPatientLastName['InputAcceptable'] == 0:
@@ -395,6 +400,11 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
 	
+	ReturnDict = RetrievePatientInfo(PatientLastNameCurrent, PatientFirstNameCurrent, LoginHash)
+	if not ReturnDict['SuccessfulQuery']:
+                print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient not found','\n'
+                return (ReturnDict)
+
 	# Validate Inputs
 	ValidatedPatientLastNameCurrent = ValidateInput(PatientLastNameCurrent, 30, (string.ascii_letters), 0)
 	if ValidatedPatientLastNameCurrent['InputAcceptable'] == 0:
