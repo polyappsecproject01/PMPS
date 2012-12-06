@@ -10,7 +10,6 @@ Useful Configuration and Administration Information (Linux VM)
 
 ## Main Website
 https://pmps.poly.edu   
-https://pmps.poly.edu/phpmyadmin  
 
 ## Packages Installed
 0MQ (but not used)  
@@ -40,11 +39,13 @@ sudo service httpd restart
 ### MySQL
 The MySQL database server is automatically run upon startup. To restart, type:  
 sudo /etc/init.d/mysqld restart
+   
+PHPMyAdmin: https://pmps.poly.edu/phpmyadmin
+DB password will be given individually by email if needed.
 
 ### PMPS Backend
 The PMPS backend program currently does not run upon startup. To start, type:  
 sudo nohup /var/backend/start_pmps  
-[Note: Try to get /etc/init.d/pmpsd to work.]
 
 ## Logins for Test Purposes
 EMT Permission: emt/Medicinerules1120*  
