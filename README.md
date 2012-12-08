@@ -102,7 +102,7 @@ Front-End General Information and Structure
 
 #### Design Elements
 - style.css
-- jquery.placeholder.js
+- jquery.placeholder.js (open-source)
 
 
 ## Security Mechanisms:
