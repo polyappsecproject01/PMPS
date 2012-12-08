@@ -41,9 +41,11 @@ function afterHover(p) {
 				$auth_dataArr = array('username' => $_SESSION["username"], 'ip_address' => $_SERVER['REMOTE_ADDR'], 'login_hash' => $_SESSION["loginHash"]);
 				$arr = array('method' => 'logout', 'auth_data' => $auth_dataArr);
 				$requestJSON = json_encode($arr);
-				$responseJSON = sendJSONgetJSON($requestJSON);
-				$responseArr = json_decode($responseJSON,true);	
-
+				$requestJSONEnc = mcrypt_encrypt(MCRYPT_3DES,$ks,$requestJSON,MCRYPT_MODE_ECB);
+				$responseJSONEnc = sendJSONgetJSON($requestJSONEnc);
+				$responseJSON = mcrypt_decrypt(MCRYPT_3DES,$ks,$responseJSONEnc,MCRYPT_MODE_ECB);
+				// Encryption/Decryption algorithm is adding padding to conform to the block-size. Null-characters are needed to be removed from the end by rtrim function
+				$responseArr = json_decode(rtrim($responseJSON, "\0"),true);
 				$authNum = $responseArr["response"]["logged_out"];
 				session_unset();
 				session_destroy();	
