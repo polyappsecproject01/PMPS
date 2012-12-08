@@ -7,11 +7,13 @@
 <!-- Google Customized Web Fonts !-->
 <link href='https://fonts.googleapis.com/css?family=Raleway:200' rel='stylesheet' type='text/css'>
 <link href='https://fonts.googleapis.com/css?family=Candal' rel='stylesheet' type='text/css'>
+<script type="application/javascript" src="indexInitialValidation.js"></script>
 
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <script type="text/javascript">
+
 function whenHover(p) {
 	p.src="logo_pmpsc_on.png";
 }
@@ -19,6 +21,7 @@ function whenHover(p) {
 function afterHover(p) {
 	p.src="logo_pmpsc.png";
 }
+
 </script>
 
 <div id="container">
@@ -27,8 +30,10 @@ function afterHover(p) {
     </header>
 	<section id="main">
     <form method="post" action="auth.php">
-        <input type="text" class="inp" name="username" placeholder="Username"  />
-		<input type="password" class="inp" name="password" placeholder="Password"/>
+        <input type="text" class="inp" name="username" placeholder="Username" onchange="initialUserValidation(this.form)" />
+		<input type="password" class="inp" name="password" placeholder="Password" onchange="initialPassValidation(this.form)" />
+        <input type="hidden" name="errUser" value="true">
+        <input type="hidden" name="errPass" value="true">
         <input type="submit" id="login"  value="Login" >
     </form>
     <?php
