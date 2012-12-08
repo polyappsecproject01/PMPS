@@ -73,40 +73,49 @@ Front-End General Information and Security Mechanisms
 
 Front-End General Information and Structure
 
-Login Process and Interface
+#### Login Process and Interface
 - index.php
-Login Authentication
+
+#### Login Authentication
 - auth.php
-JavaScript Validation:
+
+#### JavaScript Validation:
 - initialValidation.js
-PHP Validation
+
+#### PHP Validation
 - validation.php
-Restricted Views:
+
+#### Restricted Views:
 - home_emt.php
 - home_doctor.php
 - home_admin.php
-Logout Interface
+
+#### Logout Interface
 - logout.php
-Additional API Functions
+
+#### Additional API Functions
 - retPatInfo.php
 - addPat.php
 - modPatInfo.php
 - modPatName
 - remPat.php
-Design Elements
+
+#### Design Elements
 - style.css
 - jquery.placeholder.js
 
 
-Security Mechanisms:
+## Security Mechanisms:
 
-JavaScript-based Data-Validation
+#### JavaScript-based Data-Validation
+
 - Validating user inputs at real-time
 - Indicating and removing invalid inputs from forms
 - Preventing invalid inputs from being sent to further processing pages
 - Invalid inputs also include injection attack string
 
-PHP-based API Functions
+#### PHP-based API Functions
+
 - Data-validation layer
 - Transmitting encrypted Login JSON request over TCP port to Back-End
 - Receiving, decrypting ,validating and authenticating Login JSON response
@@ -117,33 +126,34 @@ PHP-based API Functions
 - Print retrieved data on a specific webpage
 - Each API function is being processed independently of other functions (unique .php file)
 
-PHP-based Restricted Views
+#### PHP-based Restricted Views
+
 - Access to restricted views is based on session variables and additional authentication mechanisms
 - An additional data-validation layer
 - Access to relevant API functionality presented is restricted base on type of permission
 
 
 -----------------------------------------------------------
-Additional Related Files under Project_Documents
+## Additional Related Files under Project_Documents
 ------------------------------------------------------------
 
-BugTracker-PMPS.pdf
+#### BugTracker-PMPS.pdf
 - Contains bug-related issues and keeps track of known issues
 
-JSON.pdf
+#### JSON.pdf
 - Information about the JSON commincation requests and responses for each of the API functions
 
-Restricted Database Call API.pdf
+#### Restricted Database Call API.pdf
 - Contains information about the restricted database call API
 
-Databases.pdf
+#### Databases.pdf
 - Information about the structure of the SQL-based database
 
-Application Security Notes and Discussions.pdf
+###  Application Security Notes and Discussions.pdf
 - General security notes about PMPS
 
-Application Security Project Proposal
+### Application Security Project Proposal
 - The proposal of the project
 
-Concept of Operations
+#### Concept of Operations
 - Explaination about the operation of PMPS
