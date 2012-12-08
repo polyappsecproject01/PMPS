@@ -1,7 +1,7 @@
 // This JavaScript code is generating warnings to clients regarding bad inputs and clear those inputs from the form
-// It is only the initial step of data validation
+// It is only the INITIAL step of data validation, MUCH MORE validation will be in Front-end (PHP) and Back-end (Python) prior to reaching the DB.
 // Does not block from sending data, just supply warnings and clear non-valid data from field prior to submission
-
+// Even if an attacker pass this (possible since it is a blacklist mechanism (additional layer)), he will be blocked afterwards
 // valid function takes an the input html field (input), and the html placeholder area where an error warning will be issued (errorTdId)
 function validFirstName(input, errorTdId) {
 	var getInputValue = input.form.patFirstName.value;	
@@ -166,8 +166,8 @@ function AllModNamesAreValid(input) {
 }
 
 
-// Validate function validates data and protects againsts some common SQL injection attacks 
-// Only initial validation that generate warnings, more validation will be done both on front-end and back-end.
+// Validate function validates data and protects againsts some common injection attacks 
+// Only initial validation that generate warnings and delete bad entried from form inputs. MUCH MORE validation protection will be done both on front-end and back-end.
 // Returns false if data is not valid and colors the input border in red
 // Returns true if data is valid and colors the input border in green
 // 
@@ -183,8 +183,8 @@ function validate(stringInput, input) {
 	}
 }
 
-// Validate function validates data and protects againsts some common SQL injection attacks 
-// Only initial validation that generate warnings, more validation will be done both on front-end and back-end.
+// Validate function validates data and protects againsts some common injection attacks 
+// Only initial validation that generate warnings and delete bad entried from form inputs. MUCH MORE validation protection will be done both on front-end and back-end.
 // Return false if data is not valid
 // Return true if data is valid
 function validateNoColoring(stringInput) {
@@ -199,5 +199,5 @@ function validateNoColoring(stringInput) {
 
 // Definition of non-valid data
 function dataNotValid(stringLowerCase) {
-	return ((stringLowerCase == "") || (stringLowerCase.indexOf("'") != -1) || (stringLowerCase.indexOf('"') != -1) || (stringLowerCase.indexOf("select") != -1) || (stringLowerCase.indexOf("privileges") != -1) || (stringLowerCase.indexOf("<?php") != -1)|| (stringLowerCase.indexOf("<?") != -1)|| (stringLowerCase.indexOf("?>") != -1) || (stringLowerCase.indexOf("drop") != -1) || (stringLowerCase.indexOf("insert") != -1) || (stringLowerCase.indexOf("create") != -1) || (stringLowerCase.indexOf("truncate") != -1) || (stringLowerCase.indexOf("delete") != -1) || (stringLowerCase.indexOf("*") != -1) || (stringLowerCase.indexOf("insert") != -1) || (stringLowerCase.indexOf("update") != -1) );
+	return ((stringLowerCase == "") || (stringLowerCase.indexOf("&nbsp;") != -1) || (stringLowerCase.indexOf("'") != -1) || (stringLowerCase.indexOf('"') != -1) || (stringLowerCase.indexOf('<') != -1) || (stringLowerCase.indexOf('>') != -1) || (stringLowerCase.indexOf('script') != -1) || (stringLowerCase.indexOf('/') != -1) || (stringLowerCase.indexOf("select") != -1) || (stringLowerCase.indexOf("privileges") != -1) || (stringLowerCase.indexOf("<?php") != -1)|| (stringLowerCase.indexOf("<?") != -1)|| (stringLowerCase.indexOf("?>") != -1) || (stringLowerCase.indexOf("drop") != -1) || (stringLowerCase.indexOf("insert") != -1) || (stringLowerCase.indexOf("create") != -1) || (stringLowerCase.indexOf("truncate") != -1) || (stringLowerCase.indexOf("delete") != -1) || (stringLowerCase.indexOf("*") != -1) || (stringLowerCase.indexOf("insert") != -1) || (stringLowerCase.indexOf("update") != -1) );
 }
