@@ -9,7 +9,7 @@
 	   }
 	   return $rv;
 	}	
-	$keyaschii = "014ef7bc441754e45e3a53496a4028469a166a11172ff6c6"; // key can be up to 24 hex chars = 96 bit
+	$keyaschii = "014ef7bc441754e45e3a53496a4028469a166a11172ff6c6"; // key can be up to 24 bytes
 	$ks = hexToChar($keyaschii);
 	
 	// Clean data to protect against Injection Attacks
