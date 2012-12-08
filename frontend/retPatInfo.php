@@ -46,8 +46,11 @@ function afterHover(p) {
 						$arr = array('method' => 'getprofile', 'auth_data' => $auth_dataArr,'request' => $requestArr );
 					
 						$requestJSON = json_encode($arr);
-						$responseJSON = sendJSONgetJSON($requestJSON);
-						$responseArr = json_decode($responseJSON,true);	
+						$requestJSONEnc = mcrypt_encrypt(MCRYPT_3DES,$ks,$requestJSON,MCRYPT_MODE_ECB);
+						$responseJSONEnc = sendJSONgetJSON($requestJSONEnc);
+						$responseJSON = mcrypt_decrypt(MCRYPT_3DES,$ks,$responseJSONEnc,MCRYPT_MODE_ECB);
+						// Encryption/Decryption algorithm is adding padding to conform to the block-size. Null-characters are needed to be removed from the end by rtrim function
+						$responseArr = json_decode(rtrim($responseJSON, "\0"),true);
 						$method = $responseArr["method"];
 						$authNum = $responseArr["response"]["retrieved"];
 						
