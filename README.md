@@ -97,7 +97,7 @@ Front-End General Information and Structure
 - retPatInfo.php
 - addPat.php
 - modPatInfo.php
-- modPatName
+- modPatName.php
 - remPat.php
 
 #### Design Elements
