@@ -1,0 +1,91 @@
+
+.error{
+	color: #F33; 
+	
+}
+
+#containerView{
+	width:1150px;
+	padding:10px;
+}
+
+#PatientSection{
+	width:1000px;
+	height:750px;
+}
+#UserSection{
+	width:1000px;
+	height:350px;
+}
+
+div.container {
+	/* border: 1px solid #000000;*/
+	overflow: hidden;
+	width: 100%;
+}
+
+div.left {
+	width: 47%;
+	float: left;
+
+}
+
+div.right {
+	width: 47%;
+	float: right;
+	
+}
+div.subTitle{
+	height:30px;
+}
+
+#PPFind,#PPEmpty,#PPEditRegion,#PPNewRegion,#UserAddRegion,#UserRmRegion{
+	max-width: 480px;
+	width: 450px;
+	border:2px solid #CCC;
+	padding:5px;
+}
+#PPEditRegion,#PPNewRegion{
+	height:500px;
+}
+#UserAddRegion,#UserRmRegion{
+	height:180px;
+}
+#PPFind{
+	height:80px;
+}
+#PPEmpty{
+	height:110px;
+	border:0px;
+	margin-bottom:4px;
+}
+#PPFindError,#PPINFOError,#PPINFOError,#UINFOError,#UINFO2Error{
+	font-size:12px;
+	width:200px;
+}
+
+
+/*#PPFind div { min-width:120px;float:left; }*/
+
+
+
+ .txtlabel{
+	width:85px; 
+	font-size:9pt;
+	color: #36C;
+	text-align: right;
+}
+
+#PPINFO .readonlyCls{
+	color: #DCD;
+}
+.preopList{
+	width:250px;
+}
+
+.opList{
+	text-align: right;
+	display:inline-block;
+	font-size:9pt;
+}
+
