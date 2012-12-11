@@ -14,6 +14,7 @@ https://pmps.poly.edu
 ## Packages Installed
 0MQ (but not used)  
 Apache 2.2.15  
+mod_ssl (Apache extension)  
 MySQL 5.1.x  
 MySQL Server 5.1.x  
 PHP 5.3.x  
