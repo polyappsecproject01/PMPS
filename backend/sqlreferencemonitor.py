@@ -80,6 +80,7 @@ def CheckForTimeoutAll():
 		if (TimeDifference > TimeOutValue):
 			LogoutSession(UserHashTime[1])
 
+
 # Request a list of currently valid logins
 def RequestValidLogins():
 	# Check to ensure that the corresponding sessions are not timed out
@@ -97,7 +98,7 @@ def UpdateTimestamp (UserName, LoginHash):
 	NewTimestamp = datetime.datetime.now()
 	DBPosition = PMPSDatabase.cursor()
 	DBPosition.execute("""UPDATE users SET last_access = %s WHERE username = %s AND login_hash = %s""", (NewTimestamp, UserName, LoginHash))
-		
+
 # Logout Function
 # Removes the associated session ID / hash value from the relevant user privilege tuple
 # The hash is checked so that old session IDs cannot be used with valid users
@@ -107,7 +108,7 @@ def LogoutSession(LogoutThisHashValue):
 	DBPosition.execute("""UPDATE users SET login_hash = %s WHERE login_hash = %s""", (LoggedOutHash, LogoutThisHashValue))
 	ReturnDict = dict(StatusMessage = 'User has been successfully logged out!', SuccessfulQuery = 1)
 	return(ReturnDict)
-			
+
 
 '''
 ~~~~~~******REQUEST VALIDATION******~~~~~~
@@ -140,7 +141,7 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters, FixInputAu
 	if (CheckThisInput.encode('ascii', 'ignore') <> CheckThisInput):
 		ReturnDict = dict(InputAcceptable = 0)
 		return (ReturnDict)
-	
+
 	# Convert an int input to a string type
 	CheckThisInput = str(CheckThisInput)
 
@@ -153,7 +154,7 @@ def ValidateInput(CheckThisInput, MaxStringLength, AllowedCharacters, FixInputAu
 		else: # If the input shouldn't be autocorrected
 			ReturnDict = dict(InputAcceptable = 0)
 			return (ReturnDict)
-	
+
 	# If the length is ok or corrected, check for allowable characters in the string
 	for character in CheckThisInput:
 		if (character not in (AllowedCharacters)):
@@ -183,7 +184,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Password entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
         # Connect to SQL DB and Retrieve Information
         DBPosition = PMPSDatabase.cursor()
         DBPosition.execute("""SELECT password_salt, password_hash, accesslevel FROM users WHERE username = %s""", (UserName))
@@ -192,7 +193,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0) # Purposely inspecific
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: User Name does not exist','\n'
                 return (ReturnDict)
-	
+
 	# Check for lockout, and if true, do not try to authenticate
 	DBPosition = PMPSDatabase.cursor()
 	DBPosition.execute("""SELECT lockout_counter FROM users WHERE username = %s""", (UserName))
@@ -222,7 +223,7 @@ def AuthenticateUser(UserName, Password): # JV - (AC removed IP_Address until fr
 		return (ReturnDict)
         
 	else:
-		
+
 		ReturnDict = dict(Message = 'User name and/or password invalid!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AuthenticateUser Failed: Password incorrect','\n'
                 # Increment the user lockout counter due to incorrect password entry
@@ -262,38 +263,41 @@ def RetrievePatientInfo(PatientLastName, PatientFirstName, LoginHash):
 		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo Failed: Login Hash contains invalid characters','\n'
                 return (ReturnDict)
-	
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# All valid user levels may use this function	
 	PermissionsOKList = ValidUserLevels 
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	isSessionTimeout =True
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to SQL DB and Retrieve Information
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-			QueryResult = DBPosition.fetchone()
-			if (QueryResult <> None): # If there is a result found
-				# Keep track of query in the activity log
-				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
-				# Store the result as a dict for return
-				ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
-				SuccessfulQuery = 1
-				# On successful request, update the timestamp 
-				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+				# Connect to SQL DB and Retrieve Information
+				DBPosition = PMPSDatabase.cursor() 
+				DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+				QueryResult = DBPosition.fetchone()
+				if (QueryResult <> None): # If there is a result found
+					# Keep track of query in the activity log
+					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RetrievePatientInfo by',UserHashLevel[0],'\n'
+					# Store the result as a dict for return
+					ReturnDict = dict(PatientLastName = QueryResult[2], PatientFirstName = QueryResult[1], PatientBloodType = QueryResult[3], PatientAllergies = QueryResult[4], PatientICELastName = QueryResult[6], PatientICEFirstName = QueryResult[5], PatientICEPhone = QueryResult[7], PatientPCPLastName = QueryResult[9], PatientPCPFirstName = QueryResult[8], PatientPCPPhone = QueryResult[10], PatientNotes = QueryResult[11], SuccessfulQuery = 1)
+					SuccessfulQuery = 1
+					# On successful request, update the timestamp 
+					UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to retrieve patient information!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to retrieve patient information!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
-		
+
 	# Validate Inputs
 	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
 	if ValidatedPatientLastName['InputAcceptable'] == 0:
@@ -318,31 +322,35 @@ def AddNewPatient(PatientLastName, PatientFirstName, LoginHash):
 	PermissionsOKList = ValidUserLevels[1:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	isSessionTimeout =True
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Ensure the patient name does not already exist 
-			DBPosition = PMPSDatabase.cursor()
-			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-			DuplicateUsers = DBPosition.fetchone()
-			if (DuplicateUsers == None):
-				# Connect to the SQL DB and Add New Patient
-				DBPosition = PMPSDatabase.cursor() 
-				DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
-				# Keep track of query in the activity log
-				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
-				# Store the result as a dict for return
-				ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
-				SuccessfulQuery = 1
-				# On successful request, update the timestamp 
-				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+
+				# Ensure the patient name does not already exist 
+				DBPosition = PMPSDatabase.cursor()
+				DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+				DuplicateUsers = DBPosition.fetchone()
+				if (DuplicateUsers == None):
+					# Connect to the SQL DB and Add New Patient
+					DBPosition = PMPSDatabase.cursor() 
+					DBPosition.execute("""INSERT INTO medical_profiles (lastname, firstname) VALUES (%s, %s)""", (PatientLastName, PatientFirstName))
+					# Keep track of query in the activity log
+					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewPatient by',UserHashLevel[0],'\n'
+					# Store the result as a dict for return
+					ReturnDict = dict(StatusMessage = 'New patient has been successfully added!', SuccessfulQuery = 1)
+					SuccessfulQuery = 1
+					# On successful request, update the timestamp 
+					UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to add new patient information!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to add new patient information!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
@@ -370,36 +378,40 @@ def RemovePatient(PatientLastName, PatientFirstName, LoginHash):
 		ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient Failed: Login Hash contains invalid characters','\n'
                 return (ReturnDict)
-	
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	isSessionTimeout =True
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Remove Patient
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+			
+				# Connect to the SQL DB and Remove Patient
+				DBPosition = PMPSDatabase.cursor() 
+				DBPosition.execute("""DELETE FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastName, PatientFirstName))
+				# Keep track of query in the activity log
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemovePatient by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(StatusMessage = 'Patient has been successfully removed!', SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to remove patient information!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to remove patient information!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLastNameNew, PatientFirstNameNew, LoginHash):
-	
+
 	ReturnDict = RetrievePatientInfo(PatientLastNameCurrent, PatientFirstNameCurrent, LoginHash)
 	if not ReturnDict['SuccessfulQuery']:
                 print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient not found','\n'
@@ -411,7 +423,7 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName Failed: Patient Name entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
 	ValidatedPatientFirstNameCurrent = ValidateInput(PatientFirstNameCurrent, 30, (string.ascii_letters), 0)
 	if ValidatedPatientFirstNameCurrent['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
@@ -441,31 +453,35 @@ def ModifyPatientName(PatientLastNameCurrent, PatientFirstNameCurrent, PatientLa
 	PermissionsOKList = ValidUserLevels[2:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	isSessionTimeout =True
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Ensure the patient name does not already exist 
-			DBPosition = PMPSDatabase.cursor()
-			DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew))
-			DuplicateUsers = DBPosition.fetchone()
-			if (DuplicateUsers == None):
-				# Connect to the SQL DB and Modify Patient Name
-				DBPosition = PMPSDatabase.cursor() 
-				DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
-				# Keep track of query in the activity log
-				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName by',UserHashLevel[0],'\n'
-				# Store the result as a dict for return
-				ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
-				SuccessfulQuery = 1
-				# On successful request, update the timestamp 
-				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+			
+				# Ensure the patient name does not already exist 
+				DBPosition = PMPSDatabase.cursor()
+				DBPosition.execute("""SELECT * FROM medical_profiles WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew))
+				DuplicateUsers = DBPosition.fetchone()
+				if (DuplicateUsers == None):
+					# Connect to the SQL DB and Modify Patient Name
+					DBPosition = PMPSDatabase.cursor() 
+					DBPosition.execute("""UPDATE medical_profiles SET lastname = %s, firstname = %s WHERE lastname = %s AND firstname = %s""", (PatientLastNameNew, PatientFirstNameNew, PatientLastNameCurrent, PatientFirstNameCurrent))
+					# Keep track of query in the activity log
+					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientName by',UserHashLevel[0],'\n'
+					# Store the result as a dict for return
+					ReturnDict = dict(StatusMessage = 'Patient name has been successfully updated!', SuccessfulQuery = 1)
+					SuccessfulQuery = 1
+					# On successful request, update the timestamp 
+					UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to modify patient name!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to modify patient name!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, LoginHash):
@@ -476,7 +492,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
                 return (ReturnDict)
 
 	# Validate Inputs
-	
+
 	ValidatedPatientLastName = ValidateInput(PatientLastName, 30, (string.ascii_letters), 0)
 	if ValidatedPatientLastName['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
@@ -495,7 +511,7 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Bloodtype entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
 	ValidatedPatientAllergies = ValidateInput(PatientAllergies, 500, (string.ascii_letters + string.digits + string.whitespace), 1)
 	if ValidatedPatientAllergies['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
@@ -540,45 +556,48 @@ def ModifyPatientInfo(PatientLastName, PatientFirstName, PatientBloodType, Patie
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient PCP Phone entered with invalid characters','\n'
                 return (ReturnDict)
 	PatientPCPPhone = ValidatedPatientPCPPhone['AcceptableValue']
-	
+
 	ValidatedPatientNotes = ValidateInput(PatientNotes, 5000, (string.ascii_letters + string.digits + string.whitespace), 1)
 	if ValidatedPatientNotes['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Patient Notes entered with invalid characters','\n'
                 return (ReturnDict)
 	PatientNotes = ValidatedPatientNotes['AcceptableValue']
-	
+
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
 	if ValidatedLoginHash['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo Failed: Login Hash contains invalid characters','\n'
                 return (ReturnDict)
-	
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with write permissions can access this (Admins and Doctors only)	
 	PermissionsOKList = ValidUserLevels[1:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+	isSessionTimeout =True
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# Connect to the SQL DB and Modify Patient Name
-			DBPosition = PMPSDatabase.cursor() 
-			DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
-			# Keep track of query in the activity log
-			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo by',UserHashLevel[0],'\n'
-			# Store the result as a dict for return
-			ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
-			SuccessfulQuery = 1
-			# On successful request, update the timestamp 
-			UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+				# Connect to the SQL DB and Modify Patient Name
+				DBPosition = PMPSDatabase.cursor() 
+				DBPosition.execute("""UPDATE medical_profiles SET bloodtype = %s, allergies = %s, ICE_lastname = %s, ICE_firstname = %s,  ICE_phone = %s,  PCP_lastname = %s, PCP_firstname = %s, PCP_phone = %s, notes = %s WHERE lastname = %s AND firstname = %s""", (PatientBloodType, PatientAllergies, PatientICELastName, PatientICEFirstName, PatientICEPhone, PatientPCPLastName, PatientPCPFirstName, PatientPCPPhone, PatientNotes, PatientLastName, PatientFirstName))
+				# Keep track of query in the activity log
+				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'ModifyPatientInfo by',UserHashLevel[0],'\n'
+				# Store the result as a dict for return
+				ReturnDict = dict(StatusMessage = 'Patient information has been successfully modified!', SuccessfulQuery = 1)
+				SuccessfulQuery = 1
+				# On successful request, update the timestamp 
+				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to modify patient information!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to modify patient information!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)
 
 def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
@@ -595,13 +614,13 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: New User Access Level entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
 	ValidatedNewUserPass = ValidateInput(NewUserPass, 30, (string.ascii_letters + string.digits + string.punctuation), 0) # Since this gets hashed before being stored, there is no risk of SQL injection regardless
 	if ValidatedNewUserPass['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: New User Password entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
 	if ValidatedLoginHash['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
@@ -613,96 +632,123 @@ def AddNewUser(NewUserName, NewUserAccessLevel, NewUserPass, LoginHash):
 	PermissionsOKList = ValidUserLevels[2:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
-	# First ensure that the access level assigned is valid
+	# First ensure that the access level assigned is valid		
+	isSessionTimeout =True
+
+
 	if (NewUserAccessLevel in ValidUserLevels):
 		print "Passwords match, valid access level requested." # Trace
 		if (ValidLogins == ()):
 			ReturnDict = dict(Message = 'No valid sessions are active!  Please log in and try again.', SuccessfulQuery = 0)
 			print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed:',ReturnDict['Message'],'\n'
 			SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
-		for UserHashLevel in ValidLogins:  			
-			if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-				print "Valid hash with proper permissions found!", UserHashLevel[1] # Trace
-				# Ensure the user name does not already exist 
-				DBPosition = PMPSDatabase.cursor()
-				DBPosition.execute("""SELECT username FROM users WHERE username = %s""", (NewUserName))
-				DuplicateUsers = DBPosition.fetchone()
-				print "Current List of Duplicate Users:", DuplicateUsers
-				if (DuplicateUsers == None): # if current user does not exist
-					# Calculate the salt and hash for storage
-					PasswordSalt = GenRandomHash()
-					PasswordHash = CalcHash(PasswordSalt, NewUserPass)
-					DBPosition = PMPSDatabase.cursor() 
-					# Add new user
-					DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash, accesslevel) VALUES (%s, %s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash, NewUserAccessLevel))
-					# Keep track of query in the activity log
-					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'(Successful)','\n'
-					# Store the result as a dict for return
-					ReturnDict = dict(StatusMessage = 'New user has been successfully added!', SuccessfulQuery = 1)
-					SuccessfulQuery = 1
-					# On successful request, update the timestamp 
-					UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
-				else:
-					ReturnDict = dict(Message = 'User already exists!', SuccessfulQuery = 0)
+		
+		for UserHashLevel in ValidLogins:  
+			if (UserHashLevel[1] == LoginHash):
+				isSessionTimeout=False
+				if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+
+					print "Valid hash with proper permissions found!", UserHashLevel[1] # Trace
+					# Ensure the user name does not already exist 
+					DBPosition = PMPSDatabase.cursor()
+					DBPosition.execute("""SELECT username FROM users WHERE username = %s""", (NewUserName))
+					DuplicateUsers = DBPosition.fetchone()
+					print "Current List of Duplicate Users:", DuplicateUsers
+					if (DuplicateUsers == None): # if current user does not exist
+						# Calculate the salt and hash for storage
+						PasswordSalt = GenRandomHash()
+						PasswordHash = CalcHash(PasswordSalt, NewUserPass)
+						DBPosition = PMPSDatabase.cursor() 
+						# Add new user
+						DBPosition.execute("""INSERT INTO users (username, password_salt, password_hash, accesslevel) VALUES (%s, %s, %s, %s)""", (NewUserName, PasswordSalt, PasswordHash, NewUserAccessLevel))
+						# Keep track of query in the activity log
+						print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'(Successful)','\n'
+						# Store the result as a dict for return
+						ReturnDict = dict(StatusMessage = 'New user has been successfully added!', SuccessfulQuery = 1)
+						SuccessfulQuery = 1
+						# On successful request, update the timestamp 
+						UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+					else:
+						ReturnDict = dict(Message = 'User already exists!', SuccessfulQuery = 0)
+						print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'Failed:',ReturnDict['Message'],'\n'
+						SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
+				else: 
+					ReturnDict = dict(Message = 'Invalid User Hash (Session ID) or User Permissions do not allow this operation!', SuccessfulQuery = 0)
 					print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'Failed:',ReturnDict['Message'],'\n'
-					SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
-			else: 
-				ReturnDict = dict(Message = 'Invalid User Hash (Session ID) or User Permissions do not allow this operation!', SuccessfulQuery = 0)
-				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser by',UserHashLevel[0],'Failed:',ReturnDict['Message'],'\n'
-				SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.	
+					SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.
+					
+
+		#fixedByLei
+		if  (SuccessfulQuery == 0):
+			ReturnDict = dict(Message = 'Failed to add new user!',SessionTimeout= isSessionTimeout, SuccessfulQuery = 0)
+
 	else:
 		ReturnDict = dict(Message = 'The passwords selected for the new user did not match or the requested access level is invalid!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed:',ReturnDict['Message'],'\n'
 		SuccessfulQuery = 39 # Arbitrary value so that ReturnDict is not reassigned by the final if statement below.
-	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to add new user!', SuccessfulQuery = 0)
+
+	
 	return(ReturnDict)	
 
 def RemoveUser(UserName, LoginHash):
-	
+
 	# Validate Inputs
 	ValidatedUserName = ValidateInput(UserName, 15, (string.ascii_letters + string.digits), 0)
-	if ValidatedNewUserName['InputAcceptable'] == 0:
+	if ValidatedUserName['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'AddNewUser Failed: User Name entered with invalid characters','\n'
                 return (ReturnDict)
-	
+
 	ValidatedLoginHash = ValidateInput(LoginHash, 64, (string.hexdigits), 0)
 	if ValidatedLoginHash['InputAcceptable'] == 0:
                 ReturnDict = dict(Message = 'Invalid characters entered or input too long!', SuccessfulQuery = 0)
 		print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemoveUser Failed: Login Hash contains invalid characters','\n'
                 return (ReturnDict)
-	
+
 	# Ensure the LoginHash is valid and has the proper permissions associated with it.
 	# Only those with admin permissions can access this (Admins only)	
 	PermissionsOKList = ValidUserLevels[2:]
 	ValidLogins = RequestValidLogins() # Returns the valid logins tuple 
 	# Tuple form: [(username, login_hash, accesslevel)] 
-	
+
 	print ValidLogins # Trace Entry
-	
+
 	# Check the corresponding Login Hash (Session ID) and check the user's permission level
 	SuccessfulQuery = 0 # Variable to check if the query returns anything
+
+	isSessionTimeout =True
 	# First ensure that the two passwords entered for the new user match (NewUserPass1, 2)
 	for UserHashLevel in ValidLogins:  
 		print UserHashLevel[1]
-		if ((UserHashLevel[1] == LoginHash) & (UserHashLevel[2] in PermissionsOKList)): # if the hashes match and the user has permission
-			# And the specified username is not the same as the user requesting the removal (user cannot remove his/herself)
-			if (UserHashLevel[0] <> UserName):
-				# Then remove the specified user
-				DBPosition = PMPSDatabase.cursor()
-				DBPosition.execute("""DELETE FROM users WHERE username = %s""", (UserName))
-				print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemoveUser by',UserHashLevel[0],'\n'
-				# Store the result as a dict for return
-				ReturnDict = dict(StatusMessage = 'User has been successfully removed!', SuccessfulQuery = 1)
-				SuccessfulQuery = 1
-				# On successful request, update the timestamp 
-				UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
+		if (UserHashLevel[1] == LoginHash):
+			isSessionTimeout=False
+			if (UserHashLevel[2] in PermissionsOKList): # if the hashes match and the user has permission
+
+				# And the specified username is not the same as the user requesting the removal (user cannot remove his/herself)
+				if (UserHashLevel[0] <> UserName):
+
+					# Then remove the specified user
+					DBPosition = PMPSDatabase.cursor()
+								#fixByLei:
+					#check whether user exists before call delete
+					DBPosition.execute("""SELECT * FROM users WHERE username = %s""", (UserName))
+					QueryResult = DBPosition.fetchone()
+
+					if (QueryResult <> None): # If there is a user found		
+						DBPosition = PMPSDatabase.cursor()			
+						DBPosition.execute("""DELETE FROM users WHERE username = %s""", (UserName))
+						print >> ActivityLog, 'Timestamp:',datetime.datetime.now(),'\n', 'RemoveUser by',UserHashLevel[0],'\n'
+						
+						# Store the result as a dict for return
+						ReturnDict = dict(StatusMessage = 'User has been successfully removed!', SuccessfulQuery = 1)
+						SuccessfulQuery = 1
+						# On successful request, update the timestamp 
+						UpdateTimestamp(UserHashLevel[0], UserHashLevel[1])
 	if  (SuccessfulQuery == 0):
-		ReturnDict = dict(Message = 'Failed to remove user!', SuccessfulQuery = 0)
+		ReturnDict = dict(Message = 'Failed to remove user!',SessionTimeout=isSessionTimeout, SuccessfulQuery = 0)
 	return(ReturnDict)	

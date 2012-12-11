@@ -8,12 +8,32 @@ import sqlreferencemonitor as refmon
 import time
 # import zmq
 
+def getTimeoutVal(execResult):
+    timeout = execResult.get("SessionTimeout")
+    if timeout == None:
+        return -1 #the op doesn't run to the step to check whether user's session has been timeout, so we don't know it yet
+    elif timeout:
+        return 1 #the operation has do extra Logoutsession for the user who send current request 
+    else:
+        return 0; #use session is not timeout 
+
 def AddNewUser (auth_data,request):
     result = refmon.AddNewUser(request["username"],request["accesslevel"],request["password"],auth_data["login_hash"])
-    return {"added":result["SuccessfulQuery"]}
+    timeoutVal = getTimeoutVal(result)
+
+    return {"added":result["SuccessfulQuery"],"timeout":timeoutVal}
+
+def DeleteUser (auth_data,request):
+    #RemoveUser(UserName, LoginHash):
+    result = refmon.RemoveUser(request["username"],auth_data["login_hash"])
+    timeoutVal = getTimeoutVal(result)
+
+    return {"deleted":result["SuccessfulQuery"],"timeout":timeoutVal}
+
 
 def CreateProfile (auth_data,request):
     result = refmon.AddNewPatient(request["lastname"],request["firstname"],auth_data["login_hash"])
+    timeoutVal = getTimeoutVal(result)
 
     if result["SuccessfulQuery"]:
         result = refmon.ModifyPatientInfo(
@@ -30,10 +50,11 @@ def CreateProfile (auth_data,request):
                      request["notes"],
                      auth_data["login_hash"])
 
-    return {"created":result["SuccessfulQuery"]}
+    return {"created":result["SuccessfulQuery"],"timeout":timeoutVal}
 
 def GetProfile (auth_data,request):
     profile = refmon.RetrievePatientInfo(request["lastname"],request["firstname"],auth_data["login_hash"])
+    timeoutVal = getTimeoutVal(profile)
 
     if profile["SuccessfulQuery"]:
         result = dict(
@@ -50,9 +71,10 @@ def GetProfile (auth_data,request):
                                firstname = profile["PatientPCPFirstName"],
                                lastname  = profile["PatientPCPLastName"],
                                phone     = profile["PatientPCPPhone"]),
-                     notes = profile["PatientNotes"])
+                     notes = profile["PatientNotes"],
+                     timeout = timeoutVal)
     else:
-        result = dict(retrieved=profile["SuccessfulQuery"])
+        result = dict(retrieved=profile["SuccessfulQuery"], timeout =timeoutVal)
 
     return result
 
@@ -79,11 +101,15 @@ def ModifyPatientName (auth_data,request):
                  request["newlastname"],
                  request["newfirstname"],
                  auth_data["login_hash"])
-    return {"modified":result["SuccessfulQuery"]}
+
+    timeoutVal = getTimeoutVal(result)
+    return {"modified":result["SuccessfulQuery"],"timeout":timeoutVal}
     
 def RemoveProfile (auth_data,request):
     result = refmon.RemovePatient(request["lastname"],request["firstname"],auth_data["login_hash"])
-    return {"removed":result["SuccessfulQuery"]}
+    timeoutVal = getTimeoutVal(result)
+
+    return {"removed":result["SuccessfulQuery"],"timeout":timeoutVal}
 
 def UpdateProfile (auth_data,request):
     result = refmon.ModifyPatientInfo(
@@ -100,7 +126,8 @@ def UpdateProfile (auth_data,request):
                  request["notes"],
                  auth_data["login_hash"])
 
-    return {"updated":result["SuccessfulQuery"]}
+    timeoutVal = getTimeoutVal(result)
+    return {"updated":result["SuccessfulQuery"],"timeout":timeoutVal}
 
 def TDES_Decrypt (the_stream):
     tdes = triple_des(unhex(shared_key))
@@ -158,6 +185,12 @@ while True:
         response = RemoveProfile(req["auth_data"],req["request"])
     elif method == "updateprofile":
         response = UpdateProfile(req["auth_data"],req["request"])
+    elif method == "addnewuser":
+        response = AddNewUser(req["auth_data"],req["request"])
+        #request["username"],request["accesslevel"],request["password"],auth_data["login_hash"])
+    elif method == "removeuser":
+        response = DeleteUser(req["auth_data"],req["request"])
+        
     else:
         response = {}
 
